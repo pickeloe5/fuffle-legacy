@@ -10,28 +10,21 @@ var viewDir = projectDir + "/views/";
 var dataDir = projectDir + "/data/";
 
 var routes = [];
-var headerArgs = {};
 var db = {};
 
+var getHeaders = function(args) {return args;};
+
 function handleRequest(request, response) {
-  response.send = function(data) {
-    response.write(data);
-    response.end();
-  };
+  var hit = false;
   for (var i in routes) {
     var route = routes[i];
     if (request.url == route.url) {
       route.callback(request, response);
+      hit = true;
+      break;
     }
   }
-}
-
-function makePageArgs(args) {
-  var pageArgs = headerArgs;
-  for (var key in args) {
-    pageArgs[key] = args[key];
-  }
-  return pageArgs;
+  if (!hit) response.end();
 }
 
 var server = http.createServer(handleRequest);
@@ -41,30 +34,38 @@ exports.get = function(url, callback) {
 };
 
 exports.sendView = function(view, args) {
-  for (var key in args) {
-    if (key.startsWith("db:")) {
-      var newKey = key.replace("db:", "");
-      var dbArgs = args[key];
-      delete args[key];
-      if (dbArgs.length == 1) {
-        db[dbArgs[0]].find({}, function(err, docs) {
-          args[newKey] = docs;
-        });
-      } else {
-        db[dbArgs[0]].find(dbArgs[1], function(err, docs) {
-          cb(docs, err);
-        });
-      }
-    }
-  }
-  var pageArgs = makePageArgs(args);
   return function(request, response) {
-    response.write(pug.renderFile(viewDir + view + ".pug", pageArgs));
+    function fetch(view, args, response, newKey, dbArgs) {
+      var table = dbArgs[0];
+      var doc = dbArgs.length > 1  ? dbArgs[1] : {};
+      db[table].find(doc, function(err, docs) {
+        if (docs.length == 1) docs = docs[0];
+        args[newKey] = docs;
+        return checkFetch(view, args, response);
+      });
+    }
+    function checkFetch(view, args, response) {
+      for (var key in args) {
+        if (key.startsWith("db:")) {
+          var newKey = key.replace("db:", "");
+          var dbArgs = args[key];
+          delete args[key];
+          return fetch(view, args, response, newKey, dbArgs);
+        }
+      }
+      return result(view, args, response);
+    }
+    function result(view, args, response) {
+      var pageArgs = getHeaders(args);
+      var html = pug.renderFile(viewDir + view + ".pug", pageArgs);
+      response.end(html);
+    }
+    return checkFetch(view, args, response);
   }
 };
 
 exports.getView = function(view, args) {
-  var pageArgs = makePageArgs(args);
+  var pageArgs = getHeaders(args);
   return pug.renderFile(viewDir + view + ".pug", pageArgs);
 };
 
