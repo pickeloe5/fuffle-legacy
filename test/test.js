@@ -1,5 +1,12 @@
 var fuffle = require("../index.js");
 
-fuffle.addTable("data", "table.dat");
-fuffle.get("/", fuffle.sendView("index", indexModel));
+fuffle.loadTable("data", "table.dat");
+fuffle.get("/", fuffle.sendView("index", {
+  "db:guy": [
+    "data",
+    {
+      "name": "nicky pie"
+    }
+  ]
+}));
 fuffle.start();

@@ -41,11 +41,20 @@ exports.get = function(url, callback) {
 };
 
 exports.sendView = function(view, args) {
-  for (var i in args) {
-    if (args[i].startsWith("db:")) {
-      var dbArgs = args[i].replace("db:", "").split(",");
-      var x = null;
-      dbGet(dbArgs[0]);
+  for (var key in args) {
+    if (key.startsWith("db:")) {
+      var newKey = key.replace("db:", "");
+      var dbArgs = args[key];
+      delete args[key];
+      if (dbArgs.length == 1) {
+        db[dbArgs[0]].find({}, function(err, docs) {
+          args[newKey] = docs;
+        });
+      } else {
+        db[dbArgs[0]].find(dbArgs[1], function(err, docs) {
+          cb(docs, err);
+        });
+      }
     }
   }
   var pageArgs = makePageArgs(args);
@@ -79,10 +88,9 @@ exports.setDataDir = function(dir) {
   dataDir = dir;
 };
 
-exports.addTable = function(name, path) {
+exports.loadTable = function(name, path) {
   db[name] = new nedb(dataDir + path);
   db[name].loadDatabase();
-  return db[name];
 };
 
 exports.dbAdd = function(name, doc) {
