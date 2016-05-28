@@ -2,12 +2,14 @@ var http = require("http");
 var pug = require("pug");
 var nedb = require("nedb");
 var path = require("path");
+var fs = require("fs");
 
 const PORT = 3000;
 
 var projectDir = path.dirname(require.main.filename);
 var viewDir = projectDir + "/views/";
 var dataDir = projectDir + "/data/";
+var modelDir = projectDir + "/models/";
 
 var routes = [];
 var db = {};
@@ -45,6 +47,31 @@ exports.sendView = function(view, args) {
       });
     }
     function checkFetch(view, args, response) {
+      if (args == undefined) {
+        var hitJson = false;
+        var source = fs.readFileSync(viewDir + view + ".pug").toString();
+        var json = "";
+        for (var i = 0; i < source.length; i++) {
+          if (source[i] == "@" && source[i+1] == "{") {
+            i += 2;
+            while (!(source[i] == "}" && source[i+1] == "@")) {
+              json += source[i];
+              i++;
+            }
+          }
+          args = JSON.parse(json);
+          args["_inline"] = json;
+          hitJson = true;
+          break;
+        }
+        if (!hitJson) {
+          if (fs.existsSync(modelDir + view + ".json")) {
+            args = JSON.parse(fs.readFileSync(modelDir + view + ".json"));
+          } else {
+            args = {};
+          }
+        }
+      }
       for (var key in args) {
         if (key.startsWith("db:")) {
           var newKey = key.replace("db:", "");
@@ -57,7 +84,10 @@ exports.sendView = function(view, args) {
     }
     function result(view, args, response) {
       var pageArgs = getHeaders(args);
-      var html = pug.renderFile(viewDir + view + ".pug", pageArgs);
+      var source = fs.readFileSync(viewDir + view + ".pug", pageArgs).toString();
+      if (args["_inline"]) source = source.replace("@{" + args["_inline"] + "}@", "");
+      pageArgs.filename = viewDir + view + ".pug";
+      var html = pug.render(source, pageArgs);
       response.end(html);
     }
     return checkFetch(view, args, response);
