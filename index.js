@@ -28,7 +28,7 @@ function handleRequest(request, response) {
     }
   }
   if (!hit) {
-    if (fs.existsSync(staticDir + request.url)) {
+    if (fs.existsSync(staticDir + request.url) && fs.statSync(staticDir + request.url).isFile()) {
       response.end(fs.readFileSync(staticDir + request.url));
     } else {
       if (error["404"]) error["404"](request, response);
