@@ -4,8 +4,8 @@ var nedb = require("nedb");
 var path = require("path");
 var fs = require("fs");
 
-const PORT = 3000;
 
+var port = 3000;
 var projectDir = path.dirname(require.main.filename);
 var viewDir = projectDir + "/views/";
 var dataDir = projectDir + "/data/";
@@ -114,8 +114,8 @@ exports.getView = function(view, args) {
 };
 
 exports.start = function() {
-  server.listen(PORT, function() {
-    console.log("Fuffle listening on port 3000");
+  server.listen(port, function() {
+    console.log("Fuffle listening on port " + port);
   });
 };
 
@@ -125,7 +125,11 @@ exports.setHeaderArgs = function(args) {
   }
 };
 
-exports.setViewsDir = function(dir) {
+exports.setPort = function(p) {
+  port = p;
+};
+
+exports.setViewDir = function(dir) {
   viewsDir = dir;
 };
 
@@ -135,6 +139,10 @@ exports.setDataDir = function(dir) {
 
 exports.setModelDir = function(dir) {
   modelDir = dir;
+};
+
+exports.setStaticDir = function(dir) {
+  staticDir = dir;
 };
 
 exports.loadTable = function(name, path) {
