@@ -12,7 +12,7 @@ var dataDir = projectDir + "/data/";
 var modelDir = projectDir + "/models/";
 var staticDir = projectDir + "/static";
 
-var routes = {};
+var routes = [];
 var db = {};
 var error = {};
 
@@ -20,8 +20,8 @@ var getHeaders = function(args) {return args;};
 
 function handleRequest(request, response) {
   var hit = false;
-  for (var url in routes) {
-    if (request.url == url) {
+  for (var route in routes) {
+    if (request.method == route.method && request.url == route.url) {
       routes[url](request, response);
       hit = true;
       break;
@@ -40,14 +40,34 @@ function handleRequest(request, response) {
 var server = http.createServer(handleRequest);
 
 exports.get = function(url, callback) {
-  routes[url] = callback;
+  routes.push({
+    "url": url,
+    "method": "get",
+    "callback": callback
+  });
+};
+
+exports.post = function(url, callback) {
+  routes.push({
+    "url": url,
+    "method": "post",
+    "callback": callback
+  });
 };
 
 exports.error = function(code, callback) {
   error[code] = callback;
-}
+};
 
-exports.sendView = function(view, args) {
+exports.makeInserter = function(table, doc, redirect) {
+  return function(request, response) {
+    db[table].insert(doc);
+    response.header("Location", redirect);
+    response.end();
+  };
+};
+
+exports.makeViewSender = function(view, args) {
   return function(request, response) {
     function fetch(view, args, response, newKey, dbArgs) {
       var table = dbArgs.table;
@@ -108,11 +128,6 @@ exports.sendView = function(view, args) {
   }
 };
 
-exports.getView = function(view, args) {
-  var pageArgs = getHeaders(args);
-  return pug.renderFile(viewDir + view + ".pug", pageArgs);
-};
-
 exports.start = function() {
   server.listen(port, function() {
     console.log("Fuffle listening on port " + port);
@@ -145,7 +160,7 @@ exports.setStaticDir = function(dir) {
   staticDir = dir;
 };
 
-exports.loadTable = function(name, path) {
-  db[name] = new nedb(dataDir + path);
+exports.loadTable = function(name) {
+  db[name] = new nedb(dataDir + name + ".dat");
   db[name].loadDatabase();
 };
