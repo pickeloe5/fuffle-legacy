@@ -16,5 +16,8 @@
     "ncp": "^2.0.0",
     "nedb": "^1.8.0",
     "pug": "^2.0.0-alpha8"
+  },
+  "bin": {
+    "fuffle": "./index.js"
   }
 }
