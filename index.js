@@ -50,8 +50,8 @@ exports.error = function(code, callback) {
 exports.sendView = function(view, args) {
   return function(request, response) {
     function fetch(view, args, response, newKey, dbArgs) {
-      var table = dbArgs[0];
-      var doc = dbArgs.length > 1  ? dbArgs[1] : {};
+      var table = dbArgs.table;
+      var doc = dbArgs.doc > 1  ? dbArgs.doc : {};
       db[table].find(doc, function(err, docs) {
         if (docs.length == 1) docs = docs[0];
         args[newKey] = docs;
