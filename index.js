@@ -13,16 +13,46 @@ var modelDir = projectDir + "/models/";
 var staticDir = projectDir + "/static";
 
 var routes = [];
+var middlewares = [];
 var db = {};
 var error = {};
 
 var getHeaders = function(args) {return args;};
 
+middlewares.push(function(request, response) {
+  if (request.method.toLowerCase() != "post") return nextMiddleware(request, response);
+  var body = [];
+  request.on('data', function(chunk) {
+    body.push(chunk);
+  }).on('end', function() {
+    body = Buffer.concat(body).toString();
+    var args = body.split("&");
+    request.body = {};
+    for (i in args) {
+      var pair = args[i].split("=");
+      request.body[pair[0]] = pair[1];
+    }
+    nextMiddleware(request, response);
+  });
+});
+
 function handleRequest(request, response) {
+  request.middlewareIndex = 0;
+  if (middlewares[0]) middlewares[0](request, response);
+}
+
+function nextMiddleware(request, response) {
+  request.middlewareIndex++;
+  if (middlewares[request.middlewareIndex]) middlewares[request.middlewareIndex](request, response);
+  else routing(request, response);
+}
+
+function routing(request, response) {
   var hit = false;
-  for (var route in routes) {
-    if (request.method == route.method && request.url == route.url) {
-      routes[url](request, response);
+  for (var i in routes) {
+    var route = routes[i];
+    if (request.method.toLowerCase() == route.method.toLowerCase() && request.url.toLowerCase() == route.url.toLowerCase()) {
+      route.callback(request, response);
       hit = true;
       break;
     }
@@ -42,7 +72,7 @@ var server = http.createServer(handleRequest);
 exports.get = function(url, callback) {
   routes.push({
     "url": url,
-    "method": "get",
+    "method": "GET",
     "callback": callback
   });
 };
@@ -50,7 +80,7 @@ exports.get = function(url, callback) {
 exports.post = function(url, callback) {
   routes.push({
     "url": url,
-    "method": "post",
+    "method": "POST",
     "callback": callback
   });
 };
@@ -59,11 +89,26 @@ exports.error = function(code, callback) {
   error[code] = callback;
 };
 
-exports.makeInserter = function(table, doc, redirect) {
+exports.makeInserter = function(table, mod, redirect) {
   return function(request, response) {
-    db[table].insert(doc);
-    response.header("Location", redirect);
-    response.end();
+    if (redirect == undefined) redirect = request.url;
+    var doc = JSON.parse(JSON.stringify(mod));
+    for (key in doc) {
+      if (key.startsWith("req:")) {
+        var newKey = key.replace("req:", "");
+        var newVal = request.body[doc[key]];
+        delete doc[key];
+        doc[decodeURIComponent(newKey.replace("+", " "))] = decodeURIComponent(newVal.replace("+", " "));
+      }
+    }
+    db[table].find({}).sort({"_inc": -1}).exec(function(err, docs) {
+      if (docs.length == 0) doc["_inc"] = 0;
+      else doc["_inc"] = parseInt(docs[0]["_inc"]) + 1;
+      db[table].insert(doc, function(err, newdoc) {
+        response.writeHead(302, {"Location": redirect});
+        response.end();
+      });
+    });
   };
 };
 
@@ -72,8 +117,7 @@ exports.makeViewSender = function(view, args) {
     function fetch(view, args, response, newKey, dbArgs) {
       var table = dbArgs.table;
       var doc = dbArgs.doc > 1  ? dbArgs.doc : {};
-      db[table].find(doc, function(err, docs) {
-        if (docs.length == 1) docs = docs[0];
+      db[table].find(doc).sort({"_inc": 1}).exec(function(err, docs) {
         args[newKey] = docs;
         return checkFetch(view, args, response);
       });
@@ -134,10 +178,8 @@ exports.start = function() {
   });
 };
 
-exports.setHeaderArgs = function(args) {
-  for (var key in args) {
-    headerArgs[key] = args[key];
-  }
+exports.setHeaderArgs = function(funct) {
+  getHeaders = funct;
 };
 
 exports.setPort = function(p) {
@@ -159,6 +201,10 @@ exports.setModelDir = function(dir) {
 exports.setStaticDir = function(dir) {
   staticDir = dir;
 };
+
+exports.addMiddleware(function(middleware) {
+  middlewares.push(middleware);
+});
 
 exports.loadTable = function(name) {
   db[name] = new nedb(dataDir + name + ".dat");
