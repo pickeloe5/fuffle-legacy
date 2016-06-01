@@ -13,6 +13,8 @@ module.exports = [
       request.body = {};
       for (i in args) {
         var pair = args[i].split("=");
+        pair[0] = decodeURIComponent(pair[0].replace("+", " "));
+        pair[1] = decodeURIComponent(pair[1].replace("+", " "));
         request.body[pair[0]] = pair[1];
       }
       next(request, response);

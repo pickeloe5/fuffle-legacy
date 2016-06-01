@@ -3,49 +3,7 @@ var pug = require("pug");
 var fs = require("fs");
 
 var env = require("./env.js");
-
-function fetch(request, model, cb) {
-  model = JSON.parse(JSON.stringify(model));
-  for (var key in model) {
-    if (typeof model[key] == "object" && env.fetchers[key]) {
-      env.fetchers[key](request, model, nextFetch(request, model));
-      return;
-    }
-    cb(model);
-  }
-
-  function nextFetch(request, model) {
-    return function(result) {
-      for (var key in result)
-        model[key] = result[key];
-      fetch(request, model);
-    }
-  }
-}
-
-function getJSON(view) {
-  if (fs.existsSync(env.modelDir + view + ".json")) {
-    return JSON.parse(fs.readFileSync(env.modelDir + view + ".json"));
-  }
-  var hitJson = false;
-  var source = fs.readFileSync(env.viewDir + view + ".pug").toString();
-  var json = "";
-  for (var i = 0; i < source.length; i++) {
-    if (source[i] == "@" && source[i+1] == "{") {
-      hitJson = true;
-      i += 2;
-      while (!(source[i] == "}" && source[i+1] == "@")) {
-        json += source[i];
-        i++;
-      }
-      break;
-    }
-  }
-  if (hitJson) {
-    return JSON.parse(json);
-  }
-  return {};
-}
+var responseMakers = require("./response-makers.js");
 
 function handleRequest(request, response) {
   request.middlewareIndex = 0;
@@ -98,31 +56,6 @@ exports.error = function(code, callback) {
   env.error[code] = callback;
 };
 
-exports.makeInserter = function(table, mod, redirect) {
-  return function(request, response) {
-    if (redirect == undefined) redirect = request.url;
-    fetch(request, mod, function(doc) {
-      env.db[table].find({}).sort({"_inc": -1}).exec(function(err, docs) {
-        if (docs.length == 0) doc["_inc"] = 0;
-        else doc["_inc"] = parseInt(docs[0]["_inc"]) + 1;
-        env.db[table].insert(doc, function(err, newdoc) {
-          response.writeHead(302, {"Location": redirect});
-          response.end();
-        });
-      });
-    });
-  };
-};
-
-exports.makeViewSender = function(view, model) {
-  return function(request, response) {
-    if (model == null) model = getJSON(view);
-    fetch(request, model, function(args) {
-      
-    });
-  }
-};
-
 exports.start = function() {
   var server = http.createServer(handleRequest);
   server.listen(env.port, function() {
@@ -130,12 +63,9 @@ exports.start = function() {
   });
 };
 
-exports.setHeaderArgs = function(funct) {
-  getHeaders = funct;
-};
-
 exports.setPort = function(p) {
-  port = p;
+  env.port = p;
 };
 
 env.setters(module.exports);
+responseMakers.makers(module.exports);

@@ -1,4 +1,4 @@
-var fuffle = require("fuffle");
+var fuffle = require("../index.js");
 
 /*
  * Routing:
@@ -18,7 +18,9 @@ var fuffle = require("fuffle");
  * Both the view directory, and the models directory, can be set:
  * fuffle.setViewDir(dir), and fuffle.setModelDir(dir)
 */
-fuffle.get("/", fuffle.sendView("index"));
+fuffle.loadTable("table");
+fuffle.get("/", fuffle.makeReader("index"));
+fuffle.post("/add", fuffle.makeCreator("table", {"req":{"key": "test"}}, "/"));
 
 /*
  * This starts the fuffle server which, by default, uses the port 3000.
