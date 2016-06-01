@@ -1,76 +1,85 @@
 var http = require("http");
 var pug = require("pug");
-var nedb = require("nedb");
-var path = require("path");
 var fs = require("fs");
 
+var env = require("./env.js");
 
-var port = 3000;
-var projectDir = path.dirname(require.main.filename);
-var viewDir = projectDir + "/views/";
-var dataDir = projectDir + "/data/";
-var modelDir = projectDir + "/models/";
-var staticDir = projectDir + "/static";
-
-var routes = [];
-var middlewares = [];
-var db = {};
-var error = {};
-
-var getHeaders = function(args) {return args;};
-
-middlewares.push(function(request, response) {
-  if (request.method.toLowerCase() != "post") return nextMiddleware(request, response);
-  var body = [];
-  request.on('data', function(chunk) {
-    body.push(chunk);
-  }).on('end', function() {
-    body = Buffer.concat(body).toString();
-    var args = body.split("&");
-    request.body = {};
-    for (i in args) {
-      var pair = args[i].split("=");
-      request.body[pair[0]] = pair[1];
+function fetch(request, model, cb) {
+  model = JSON.parse(JSON.stringify(model));
+  for (var key in model) {
+    if (typeof model[key] == "object" && env.fetchers[key]) {
+      env.fetchers[key](request, model, nextFetch(request, model));
+      return;
     }
-    nextMiddleware(request, response);
-  });
-});
+    cb(model);
+  }
 
-function handleRequest(request, response) {
-  request.middlewareIndex = 0;
-  if (middlewares[0]) middlewares[0](request, response);
+  function nextFetch(request, model) {
+    return function(result) {
+      for (var key in result)
+        model[key] = result[key];
+      fetch(request, model);
+    }
+  }
 }
 
-function nextMiddleware(request, response) {
-  request.middlewareIndex++;
-  if (middlewares[request.middlewareIndex]) middlewares[request.middlewareIndex](request, response);
-  else routing(request, response);
-}
-
-function routing(request, response) {
-  var hit = false;
-  for (var i in routes) {
-    var route = routes[i];
-    if (request.method.toLowerCase() == route.method.toLowerCase() && request.url.toLowerCase() == route.url.toLowerCase()) {
-      route.callback(request, response);
-      hit = true;
+function getJSON(view) {
+  if (fs.existsSync(env.modelDir + view + ".json")) {
+    return JSON.parse(fs.readFileSync(env.modelDir + view + ".json"));
+  }
+  var hitJson = false;
+  var source = fs.readFileSync(env.viewDir + view + ".pug").toString();
+  var json = "";
+  for (var i = 0; i < source.length; i++) {
+    if (source[i] == "@" && source[i+1] == "{") {
+      hitJson = true;
+      i += 2;
+      while (!(source[i] == "}" && source[i+1] == "@")) {
+        json += source[i];
+        i++;
+      }
       break;
     }
   }
-  if (!hit) {
-    if (fs.existsSync(staticDir + request.url) && fs.statSync(staticDir + request.url).isFile()) {
-      response.end(fs.readFileSync(staticDir + request.url));
-    } else {
-      if (error["404"]) error["404"](request, response);
-      else response.end("404");
+  if (hitJson) {
+    return JSON.parse(json);
+  }
+  return {};
+}
+
+function handleRequest(request, response) {
+  request.middlewareIndex = 0;
+  if (env.middlewares[0]) env.middlewares[0](request, response, nextMiddleware);
+
+  function nextMiddleware(request, response) {
+    request.middlewareIndex++;
+    if (env.middlewares[request.middlewareIndex]) env.middlewares[request.middlewareIndex](request, response);
+    else routing(request, response);
+  }
+
+  function routing(request, response) {
+    var hit = false;
+    for (var i in env.routes) {
+      var route = env.routes[i];
+      if (request.method.toLowerCase() == route.method.toLowerCase() && request.url.toLowerCase() == route.url.toLowerCase()) {
+        route.callback(request, response);
+        hit = true;
+        break;
+      }
+    }
+    if (!hit) {
+      if (fs.existsSync(env.staticDir + request.url) && fs.statSync(env.staticDir + request.url).isFile()) {
+        response.end(fs.readFileSync(env.staticDir + request.url));
+      } else {
+        if (env.error["404"]) env.error["404"](request, response);
+        else response.end("404");
+      }
     }
   }
 }
 
-var server = http.createServer(handleRequest);
-
 exports.get = function(url, callback) {
-  routes.push({
+  env.routes.push({
     "url": url,
     "method": "GET",
     "callback": callback
@@ -78,7 +87,7 @@ exports.get = function(url, callback) {
 };
 
 exports.post = function(url, callback) {
-  routes.push({
+  env.routes.push({
     "url": url,
     "method": "POST",
     "callback": callback
@@ -86,95 +95,38 @@ exports.post = function(url, callback) {
 };
 
 exports.error = function(code, callback) {
-  error[code] = callback;
+  env.error[code] = callback;
 };
 
 exports.makeInserter = function(table, mod, redirect) {
   return function(request, response) {
     if (redirect == undefined) redirect = request.url;
-    var doc = JSON.parse(JSON.stringify(mod));
-    for (key in doc) {
-      if (key.startsWith("req:")) {
-        var newKey = key.replace("req:", "");
-        var newVal = request.body[doc[key]];
-        delete doc[key];
-        doc[decodeURIComponent(newKey.replace("+", " "))] = decodeURIComponent(newVal.replace("+", " "));
-      }
-    }
-    db[table].find({}).sort({"_inc": -1}).exec(function(err, docs) {
-      if (docs.length == 0) doc["_inc"] = 0;
-      else doc["_inc"] = parseInt(docs[0]["_inc"]) + 1;
-      db[table].insert(doc, function(err, newdoc) {
-        response.writeHead(302, {"Location": redirect});
-        response.end();
+    fetch(request, mod, function(doc) {
+      env.db[table].find({}).sort({"_inc": -1}).exec(function(err, docs) {
+        if (docs.length == 0) doc["_inc"] = 0;
+        else doc["_inc"] = parseInt(docs[0]["_inc"]) + 1;
+        env.db[table].insert(doc, function(err, newdoc) {
+          response.writeHead(302, {"Location": redirect});
+          response.end();
+        });
       });
     });
   };
 };
 
-exports.makeViewSender = function(view, args) {
+exports.makeViewSender = function(view, model) {
   return function(request, response) {
-    function fetch(view, args, response, newKey, dbArgs) {
-      var table = dbArgs.table;
-      var doc = dbArgs.doc > 1  ? dbArgs.doc : {};
-      db[table].find(doc).sort({"_inc": 1}).exec(function(err, docs) {
-        args[newKey] = docs;
-        return checkFetch(view, args, response);
-      });
-    }
-    function checkFetch(view, args, response) {
-      if (args == undefined) {
-        var hitJson = false;
-        var source = fs.readFileSync(viewDir + view + ".pug").toString();
-        var json = "";
-        for (var i = 0; i < source.length; i++) {
-          if (source[i] == "@" && source[i+1] == "{") {
-            hitJson = true;
-            i += 2;
-            while (!(source[i] == "}" && source[i+1] == "@")) {
-              json += source[i];
-              i++;
-            }
-          }
-          if (!hitJson) break;
-          args = JSON.parse(json);
-          args["_inline"] = json;
-          hitJson = true;
-          break;
-        }
-        if (!hitJson) {
-          if (fs.existsSync(modelDir + view + ".json")) {
-            args = JSON.parse(fs.readFileSync(modelDir + view + ".json"));
-          } else {
-            args = {};
-          }
-        }
-      }
-      for (var key in args) {
-        if (key.startsWith("db:")) {
-          var newKey = key.replace("db:", "");
-          var dbArgs = args[key];
-          delete args[key];
-          return fetch(view, args, response, newKey, dbArgs);
-        }
-      }
-      return result(view, args, response);
-    }
-    function result(view, args, response) {
-      var pageArgs = getHeaders(args);
-      var source = fs.readFileSync(viewDir + view + ".pug", pageArgs).toString();
-      if (args["_inline"]) source = source.replace("@{" + args["_inline"] + "}@", "");
-      pageArgs.filename = viewDir + view + ".pug";
-      var html = pug.render(source, pageArgs);
-      response.end(html);
-    }
-    return checkFetch(view, args, response);
+    if (model == null) model = getJSON(view);
+    fetch(request, model, function(args) {
+      
+    });
   }
 };
 
 exports.start = function() {
-  server.listen(port, function() {
-    console.log("Fuffle listening on port " + port);
+  var server = http.createServer(handleRequest);
+  server.listen(env.port, function() {
+    console.log("Fuffle listening on port " + env.port);
   });
 };
 
@@ -186,27 +138,4 @@ exports.setPort = function(p) {
   port = p;
 };
 
-exports.setViewDir = function(dir) {
-  viewsDir = dir;
-};
-
-exports.setDataDir = function(dir) {
-  dataDir = dir;
-};
-
-exports.setModelDir = function(dir) {
-  modelDir = dir;
-};
-
-exports.setStaticDir = function(dir) {
-  staticDir = dir;
-};
-
-exports.addMiddleware(function(middleware) {
-  middlewares.push(middleware);
-});
-
-exports.loadTable = function(name) {
-  db[name] = new nedb(dataDir + name + ".dat");
-  db[name].loadDatabase();
-};
+env.setters(module.exports);
