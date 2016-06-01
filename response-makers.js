@@ -73,16 +73,25 @@ exports.makers = function(fuffle) {
     }
   };
 
-  fuffle.makeUpdater = function(table, doc, redirect) {
+  fuffle.makeUpdater = function(table, model, redirect) {
     return function(request, response) {
-      env.db[table].update({"_id": doc["_id"]}, doc, {}, function(err, num, docs) {
-        response.writeHead(302, {"Location": redirect});
-        response.end();
+      fetch(request, model, function(doc) {
+        env.db[table].update({"_id": doc["_id"]}, doc, {}, function(err) {
+          response.writeHead(302, {"Location": redirect});
+          response.end();
+        });
       });
     };
   };
 
-  fuffle.makeDeleter = function(table, doc, redirect) {
-
+  fuffle.makeDeleter = function(table, model, redirect) {
+    return function(request, response) {
+      fetch(request, model, function(doc) {
+        env.db[table].remove(doc, {}, function(err) {
+          response.writeHead(302, {"Location": redirect});
+          response.end();
+        });
+      });
+    };
   };
 };

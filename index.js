@@ -4,6 +4,7 @@ var fs = require("fs");
 
 var env = require("./env.js");
 var responseMakers = require("./response-makers.js");
+var routers = require("./routers.js");
 
 function handleRequest(request, response) {
   request.middlewareIndex = 0;
@@ -36,26 +37,6 @@ function handleRequest(request, response) {
   }
 }
 
-exports.get = function(url, callback) {
-  env.routes.push({
-    "url": url,
-    "method": "GET",
-    "callback": callback
-  });
-};
-
-exports.post = function(url, callback) {
-  env.routes.push({
-    "url": url,
-    "method": "POST",
-    "callback": callback
-  });
-};
-
-exports.error = function(code, callback) {
-  env.error[code] = callback;
-};
-
 exports.start = function() {
   var server = http.createServer(handleRequest);
   server.listen(env.port, function() {
@@ -69,3 +50,4 @@ exports.setPort = function(p) {
 
 env.setters(module.exports);
 responseMakers.makers(module.exports);
+routers.routers(module.exports);
