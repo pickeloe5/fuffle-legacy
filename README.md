@@ -1,4 +1,4 @@
-# fuffle
+# Fuffle
 Fuffle is a light weight node.js web framework, built to minimize
 backend development. Why take time to write controllers, models, and
 views all separately when you can generate models and controllers from
