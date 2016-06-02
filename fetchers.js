@@ -14,7 +14,7 @@ exports.db = function(request, model, next) {
     if (doc == null) doc = {};
     if (single == null) single = false;
 
-    env.db[table].find(doc, function(err, docs) {
+    env.db[table].find(doc).sort({"_inc": 1}).exec(function(err, docs) {
       if (single) docs = docs[0];
       result[key] = docs;
       check();

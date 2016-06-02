@@ -22,6 +22,7 @@ fuffle.loadTable("table");
 fuffle.get("/", fuffle.makeReader("index"));
 fuffle.post("/add", fuffle.makeCreator("table", "add", "/"));
 fuffle.get("/delete", fuffle.makeDeleter("table", "delete", "/"));
+fuffle.post("/update", fuffle.makeUpdater("table", "update", "/"));
 
 /*
  * This starts the fuffle server which, by default, uses the port 3000.
