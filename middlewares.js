@@ -15,8 +15,8 @@ module.exports = [
       request.body = {};
       for (i in args) {
         var pair = args[i].split("=");
-        pair[0] = decodeURIComponent(pair[0].replace("+", " "));
-        pair[1] = decodeURIComponent(pair[1].replace("+", " "));
+        pair[0] = unescape(pair[0].replace(/\+/g, " "));
+        pair[1] = unescape(pair[1].replace(/\+/g, " "));
         request.body[pair[0]] = pair[1];
       }
       next(request, response);
