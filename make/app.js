@@ -1,4 +1,4 @@
-var fuffle = require("../index.js");
+var fuffle = require("fuffle");
 
 /*
  * Routing:
