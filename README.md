@@ -17,29 +17,29 @@ Models are written in normal json, and can be stored with the same path
 as the view, but in the models directory, or in the view file like so:
 ```
 pug syntax...
-@{
-  {
-    "key": "value",
-    "key": {
-      "value": "value-value"
+//@{
+    {
+      "key": "value",
+      "key": {
+        "value": "value-value"
+      }
     }
-  }
-}@
+  }@
 more pug syntax...
 ```
 You can get database values by first loading them in app.js
 ```
 fuffle.loadTable(tableName);
 ```
-Where data is stored in /data/tableName.dat, then you can
-get values from the table like so:
+Fuffle uses additional functions to parse your models called fetchers, you
+can use them like this:
 ```
 {
-  "db:key": {
-    "table": tableName,
-    "doc": {
-      "queryKey": "queryValue"
-    }
+  "fetcher-name": {
+    "key": "fetcher-args"
+  },
+  "post": {
+    "key": "post-data-key"
   }
 }
 ```
@@ -47,3 +47,19 @@ get values from the table like so:
 ## Data Tables
 Fuffle uses [nedb](https://github.com/louischatriot/nedb) as a database
 engine, so check out their github if you need to.
+
+## Routing
+Fuffle's main goal is to minimize backend development. To do this,
+it uses built-in functions called response-makers. Use them like so:
+```
+fuffle.get("/path/to/url", fuffle.makeReader("viewName"));
+```
+This will make a route to "/path/to/url" that takes "get" requests,
+and sends the 'viewName' view. These response-makers are based on
+CRUD support, so there are only four:
+```
+fuffle.post("/create", fuffle.makeCreator("tableName", "modelName", "/path/to/redirect"));
+fuffle.get("/read", fuffle.makeReader("viewName"));
+fuffle.post("/update", fuffle.makeUpdater("tableName", "modelName", "/path/to/redirect"));
+fuffle.post("/delete", fuffle.makeDeleter("tableName", "modelName", "/path/to/redirect"));
+```
