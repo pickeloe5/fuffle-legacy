@@ -15,8 +15,8 @@ module.exports = [
       request.body = {};
       for (i in args) {
         var pair = args[i].split("=");
-        pair[0] = unescape(pair[0].replace(/\+/g, " "));
-        pair[1] = unescape(pair[1].replace(/\+/g, " "));
+        pair[0] = unescape(pair[0].replace(/\+/g, " ").replace(/%E2%80%93/g, "-"));
+        pair[1] = unescape(pair[1].replace(/\+/g, " ").replace(/%E2%80%93/g, "-"));
         request.body[pair[0]] = pair[1];
       }
       next(request, response);
