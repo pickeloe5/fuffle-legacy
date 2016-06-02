@@ -12,28 +12,36 @@ function handleRequest(request, response) {
 
   function nextMiddleware(request, response) {
     request.middlewareIndex++;
-    if (env.middlewares[request.middlewareIndex]) env.middlewares[request.middlewareIndex](request, response);
+    if (env.middlewares[request.middlewareIndex]) env.middlewares[request.middlewareIndex](request, response, nextMiddleware);
     else routing(request, response);
   }
 
   function routing(request, response) {
     var hit = false;
+    var url = rectifyUrl(request.pathname);
     for (var i in env.routes) {
       var route = env.routes[i];
-      if (request.method.toLowerCase() == route.method.toLowerCase() && request.url.toLowerCase() == route.url.toLowerCase()) {
+      route.url = rectifyUrl(route.url);
+      if (request.method.toLowerCase() == route.method.toLowerCase() && url.toLowerCase() == route.url.toLowerCase()) {
         route.callback(request, response);
         hit = true;
         break;
       }
     }
     if (!hit) {
-      if (fs.existsSync(env.staticDir + request.url) && fs.statSync(env.staticDir + request.url).isFile()) {
-        response.end(fs.readFileSync(env.staticDir + request.url));
+      if (fs.existsSync(env.staticDir + url) && fs.statSync(env.staticDir + url).isFile()) {
+        response.end(fs.readFileSync(env.staticDir + url));
       } else {
         if (env.error["404"]) env.error["404"](request, response);
         else response.end("404");
       }
     }
+  }
+
+  function rectifyUrl(url) {
+    if (url[0] != '/') url = "/" + url;
+    if (url[url.length - 1] != '/') url = url + "/";
+    return url;
   }
 }
 
@@ -42,10 +50,6 @@ exports.start = function() {
   server.listen(env.port, function() {
     console.log("Fuffle listening on port " + env.port);
   });
-};
-
-exports.setPort = function(p) {
-  env.port = p;
 };
 
 env.setters(module.exports);

@@ -10,6 +10,9 @@ html
       li Next, make some more views in the views directory
       li Then add your routes in the app.js file
       li Check out the git readme or the npm page for more info...
+    ul
+      each item in items
+        li #[a(href="/delete/?id=" + item["_id"]) (x)] #{item.key}
     form(action="/add", method="post")
       input(type="text", name="test", value="test")
-      input(type="submit", value="submit")
+      input(type="submit", value="insert")

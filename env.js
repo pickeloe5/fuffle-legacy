@@ -42,4 +42,8 @@ exports.setters = function(fuffle) {
     exports.db[name] = new nedb(exports.dataDir + name + ".dat");
     exports.db[name].loadDatabase();
   };
+
+  fuffle.setPort = function(p) {
+    exports.port = p;
+  };
 };

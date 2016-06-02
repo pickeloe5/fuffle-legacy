@@ -49,6 +49,8 @@ function getJSON(view) {
 
 exports.makers = function(fuffle) {
   fuffle.makeCreator = function(table, model, redirect) {
+    if (typeof model == "string")
+      model = JSON.parse(fs.readFileSync(env.modelDir + model + ".json"));
     return function(request, response) {
       if (redirect == undefined) redirect = request.url;
       fetch(request, model, function(doc) {
@@ -85,6 +87,8 @@ exports.makers = function(fuffle) {
   };
 
   fuffle.makeDeleter = function(table, model, redirect) {
+    if (typeof model == "string")
+      model = JSON.parse(fs.readFileSync(env.modelDir + model + ".json"));
     return function(request, response) {
       fetch(request, model, function(doc) {
         env.db[table].remove(doc, {}, function(err) {

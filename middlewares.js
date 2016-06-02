@@ -1,3 +1,5 @@
+var url = require("url");
+
 module.exports = [
   function getPostData(request, response, next) {
     if (request.method.toLowerCase() != "post") {
@@ -19,5 +21,11 @@ module.exports = [
       }
       next(request, response);
     });
+  },
+  function getGetParams(request, response, next) {
+    var urlData = url.parse(request.url, true);
+    request.params = urlData.query;
+    request.pathname = urlData.pathname;
+    next(request, response);
   }
 ];

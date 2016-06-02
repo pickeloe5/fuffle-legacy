@@ -20,7 +20,8 @@ var fuffle = require("../index.js");
 */
 fuffle.loadTable("table");
 fuffle.get("/", fuffle.makeReader("index"));
-fuffle.post("/add", fuffle.makeCreator("table", {"req":{"key": "test"}}, "/"));
+fuffle.post("/add", fuffle.makeCreator("table", "add", "/"));
+fuffle.get("/delete", fuffle.makeDeleter("table", "delete", "/"));
 
 /*
  * This starts the fuffle server which, by default, uses the port 3000.

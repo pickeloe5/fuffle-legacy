@@ -32,9 +32,16 @@ exports.db = function(request, model, next) {
   }
 };
 
-exports.req = function(request, model, next) {
+exports.post = function(request, model, next) {
   var result = {};
   for (var key in model)
     result[key] = request.body[model[key]];
+  next(result);
+};
+
+exports.get = function(request, model, next) {
+  var result = {};
+  for (var key in model)
+    result[key] = request.params[model[key]];
   next(result);
 };
