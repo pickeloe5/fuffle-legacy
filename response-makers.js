@@ -67,6 +67,8 @@ exports.makers = function(fuffle) {
   };
 
   fuffle.makeReader = function(view, model) {
+    if (typeof model == "string")
+      model = JSON.parse(fs.readFileSync(env.modelDir + model + ".json"));
     return function(request, response) {
       if (model == null) model = getJSON(view);
       fetch(request, model, function(args) {
@@ -76,11 +78,16 @@ exports.makers = function(fuffle) {
   };
 
   fuffle.makeUpdater = function(table, model, redirect) {
+    if (typeof model == "string")
+      model = JSON.parse(fs.readFileSync(env.modelDir + model + ".json"));
     return function(request, response) {
       fetch(request, model, function(doc) {
-        env.db[table].update({"_id": doc["_id"]}, doc, {}, function(err) {
-          response.writeHead(302, {"Location": redirect});
-          response.end();
+        env.db[table].find({"_id": doc["_id"]}, function(err, preDoc) {
+          doc["_inc"] = preDoc[0]["_inc"];
+          env.db[table].update({"_id": doc["_id"]}, doc, {}, function(err) {
+            response.writeHead(302, {"Location": redirect});
+            response.end();
+          });
         });
       });
     };
