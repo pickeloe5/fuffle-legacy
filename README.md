@@ -111,7 +111,7 @@ result, which is added to the model, for example:
 ```
 You can create a fetcher with the putFetcher function:
 ```
-fuffle.butFetcher("fetcher-name", function(request, tofetch, next) {
+fuffle.putFetcher("fetcher-name", function(request, tofetch, next) {
   for (var key in tofetch) {
     tofetch[key] = "fetched";
   }
