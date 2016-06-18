@@ -8,12 +8,12 @@ Your models can hold static values, or pull from a database, and you can
 still write custom controllers if you want.
 
 ### Table of Contents
-- [Routing](#Routing)
-- [Views](#Views)
-- [Models](#Models)
-- [Middleware](#Middleware)
-- [Fetchers](#Fetchers)
-- [Database](#Database)
+- [Routing](#routing)
+- [Views](#views)
+- [Models](#models)
+- [Middleware](#middleware)
+- [Fetchers](#fetchers)
+- [Database](#database)
 
 ## Routing
 Fuffle's main goal is to minimize backend development. To do this,
