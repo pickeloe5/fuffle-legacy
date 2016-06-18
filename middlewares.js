@@ -10,34 +10,33 @@ module.exports = [
     request.on('data', function(chunk) {
       body.push(chunk);
     }).on('end', function() {
-      body = Buffer.concat(body).toString();
+      var bodyBuffer = Buffer.concat(body);
+      body = bodyBuffer.toString();
       if (body.startsWith("------WebKitFormBoundary")) {
-        var boundary = body.split("\n")[0] + "\n";
-        var inputs = body.split(boundary);
+        var boundary = body.split("\n")[0];
+        var inputs = body.split(boundary + "\n");
+        var last = inputs[inputs.length - 1];
+        var lastLines = last.split("\r\n");
+        last = last.replace("\r\n" + lastLines[lastLines.length - 1], "");
+        inputs[inputs.length - 1] last;
         inputs.splice(0, 1);
         request.body = {};
         for (var i in inputs) {
           var args = inputs[i];
-          args = args.replace(/\r\n\r\n/g, "; ").replace(/\r\n/g, "; ").split("; ");
-          args.splice(0, 1);
-          args.splice(args.length - 1, 1);
-          if (i == inputs.length - 1)
-            args.splice(args.length - 1, 1);
-
-          var key = args[0].split("=")[1];
-          key = key.slice(1, key.length - 1);
-          var val = {};
-          if (args[1].includes("filename")) {
-            val = {};
-            val.filename = args[1].split("=")[1];
-            val.filename = val.filename.slice(1, val.filename.length - 1);
-            val.contentType = args[args.length - 2].split(": ")[1];
-            val.content = args[args.length - 1];
+          var lines = args.split("\r\n");
+          if (lines[0].includes("filename")) {
+            var obj = {};
+            var tags = lines[0].split(": ")[1].split("; ").slice(1);
+            var name = tags[0].replace("name=\"", "").replace("\"", "");
+            obj.filename = tags[1].replace("filename=\"", "").replace("\"", "");
+            obj.payload = args.replace(lines[0] + "\r\n" + lines[1] + "\r\n\r\n", "");
+            request.body[name] = obj;
           } else {
-            val = args[args.length - 1];
+            var tags = lines[0].split(": ")[1].split("; ").slice(1);
+            var name = tags[0].replace("name=\"", "").replace("\"", "");
+            var val = args.replace(lines[0] + "\r\n\r\n", "");
+            request.body[name] = val;
           }
-
-          request.body[key] = val;
         }
 
         next(request, response);
