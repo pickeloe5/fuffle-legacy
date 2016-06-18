@@ -38,6 +38,10 @@ exports.setters = function(fuffle) {
     exports.middlewares.push(middleware);
   };
 
+  fuffle.putFetcher = function(fetcherName, fetcher) {
+    exports.fetchers[fetcherName] = fetcher;
+  };
+
   fuffle.loadTable = function(name) {
     exports.db[name] = new nedb(exports.dataDir + name + ".dat");
     exports.db[name].loadDatabase();
