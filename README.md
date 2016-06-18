@@ -52,6 +52,42 @@ pug syntax...
 more pug syntax...
 ```
 
+## Middleware
+Middleware is called directly after the request is made, the route hasn't been
+processed yet, and the model hasn't been fetched. You can add a middleware with
+the addMiddleware function:
+```
+fuffle.addMiddleware(function(request, response, next) {
+ request.middlewareDone = true;
+ next(request, response);
+});
+```
+
+This model would call the fetcher-name function with the object `{"key": "args"}`
+as a parameter. The fetcher-name function would parse this data, and return the
+result, which is added to the model, for example:
+```
+// model.json
+{
+ "string-doubler": {
+   "echo": "Hello, "
+ }
+}
+// string-doubler({"echo": "Hello, "}) is called, which returns this:
+{
+ "echo": "Hello, Hello, "
+}
+```
+You can create a fetcher with the putFetcher function:
+```
+fuffle.putFetcher("fetcher-name", function(request, tofetch, next) {
+ for (var key in tofetch) {
+   tofetch[key] = "fetched";
+ }
+ next(tofetch);
+});
+```
+
 ## Fetchers
 Fetchers are name functions, which are called to parse models, for example:
 ```
@@ -82,39 +118,3 @@ database calls extremely fast and light. Load a table into memory using
   }
 }
  ```
-
-## Middleware
-Middleware is called directly after the request is made, the route hasn't been
-processed yet, and the model hasn't been fetched. You can add a middleware with
-the addMiddleware function:
-```
-fuffle.addMiddleware(function(request, response, next) {
-  request.middlewareDone = true;
-  next(request, response);
-});
-```
-
-This model would call the fetcher-name function with the object `{"key": "args"}`
-as a parameter. The fetcher-name function would parse this data, and return the
-result, which is added to the model, for example:
-```
-// model.json
-{
-  "string-doubler": {
-    "echo": "Hello, "
-  }
-}
-// string-doubler({"echo": "Hello, "}) is called, which returns this:
-{
-  "echo": "Hello, Hello, "
-}
-```
-You can create a fetcher with the putFetcher function:
-```
-fuffle.putFetcher("fetcher-name", function(request, tofetch, next) {
-  for (var key in tofetch) {
-    tofetch[key] = "fetched";
-  }
-  next(tofetch);
-});
-```
