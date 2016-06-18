@@ -39,7 +39,6 @@ module.exports = [
 
           request.body[key] = val;
         }
-        console.log(request.body);
 
         next(request, response);
       } else {
