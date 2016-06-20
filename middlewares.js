@@ -13,11 +13,14 @@ module.exports = [
       request.body[fieldname] = val;
     });
     busboy.on("file", function(fieldname, file, filename) {
-      var fileContents = "";
+      var buffers = [];
+      var totalSize = 0;
       file.on("data", function(data) {
-        fileContents += data;
+        buffers.push(data);
+        totalSize += data.length;
       });
       file.on("end", function() {
+        var fileContents = Buffer.concat(buffers, totalSize);
         request.body[fieldname] = {"filename": filename, "contents": fileContents};
       });
     });
