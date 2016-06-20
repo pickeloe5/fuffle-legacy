@@ -8,12 +8,18 @@ Your models can hold static values, or pull from a database, and you can
 still write custom controllers if you want.
 
 ### Table of Contents
+- [Generator](#generator)
 - [Routing](#routing)
 - [Views](#views)
 - [Models](#models)
 - [Middleware](#middleware)
 - [Fetchers](#fetchers)
 - [Database](#database)
+
+## Generator
+You can generate a fuffle project by installing fuffle globally `npm install fuffle -g`,
+ and running the command `fuffle make projectName`. This will create a folder
+in the current working directory with a fuffle environment set up.
 
 ## Routing
 Fuffle's main goal is to minimize backend development. To do this,
