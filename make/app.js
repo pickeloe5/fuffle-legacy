@@ -1,32 +1,23 @@
 var fuffle = require("fuffle");
 
-/*
- * Routing:
- * fuffle.method(url, callback);
- * method = get/post
- * url = url to be routed
- * callback = function(request, response) to be called when route is hit
- * - You can use fuffle.sendView(viewName) to generate a callback to send a view
- *
- * Views:
- * Views are loaded from the views directory, and filled with data from
- * a model. This model can be in the pug template:
- * @{
- * json...
- * }@
- * or it will be loaded from the models directory at models/viewName.json
- * Both the view directory, and the models directory, can be set:
- * fuffle.setViewDir(dir), and fuffle.setModelDir(dir)
-*/
+// Loads that 'table' database into memory.
 fuffle.loadTable("table");
-fuffle.get("/", fuffle.makeReader("index"));
-fuffle.post("/add", fuffle.makeCreator("table", "add", "/"));
-fuffle.get("/delete", fuffle.makeDeleter("table", "delete", "/"));
-fuffle.post("/update", fuffle.makeUpdater("table", "update", "/"));
 
-/*
- * This starts the fuffle server which, by default, uses the port 3000.
- * You can use fuffle.setPort(port) to change this
- * Note, you can modify many parts of th
-*/
+// Routes all get requests to '/' to a function then sends the 'index' view.
+fuffle.routeReader('/', 'index');
+
+// Routes all post requests to '/add' to a functino that adds
+// an object derived from the 'add' model to the 'table' database.
+fuffle.routeCreator('/add', 'table', 'add', '/');
+
+// Routes all get requests to '/delete' to a function that deletes
+// an object derived from the 'delete' model from the database.
+fuffle.routeDeleter('/delete', 'table', 'delete', '/');
+
+// Routes all post requests to a function that updates an object in the
+// database with an object derived from the 'update' model.
+fuffle.routeUpdater('/update', 'table', 'update', '/');
+
+// Starts the fuffle server on port 300 defaultly
+// Use fuffle.setPort(port) to change this.
 fuffle.start();

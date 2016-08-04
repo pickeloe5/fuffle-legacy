@@ -60,11 +60,11 @@ exports.makers = function(fuffle) {
           env.db[table].insert(doc, function(err, newdoc) {
             response.writeHead(302, {"Location": redirect});
             response.end();
-          });
-        });
-      });
-    };
-  };
+          })
+        })
+      })
+    }
+  }
 
   fuffle.makeReader = function(view, model) {
     if (typeof model == "string")
@@ -73,9 +73,9 @@ exports.makers = function(fuffle) {
       if (model == null) model = getJSON(view);
       fetch(request, model, function(args) {
         response.end(pug.renderFile(env.viewDir + view + ".pug", args));
-      });
+      })
     }
-  };
+  }
 
   fuffle.makeUpdater = function(table, model, redirect) {
     if (typeof model == "string")
@@ -87,11 +87,11 @@ exports.makers = function(fuffle) {
           env.db[table].update({"_id": doc["_id"]}, doc, {}, function(err) {
             response.writeHead(302, {"Location": redirect});
             response.end();
-          });
-        });
-      });
-    };
-  };
+          })
+        })
+      })
+    }
+  }
 
   fuffle.makeDeleter = function(table, model, redirect) {
     if (typeof model == "string")
@@ -101,8 +101,24 @@ exports.makers = function(fuffle) {
         env.db[table].remove(doc, {}, function(err) {
           response.writeHead(302, {"Location": redirect});
           response.end();
-        });
-      });
-    };
-  };
-};
+        })
+      })
+    }
+  }
+
+  fuffle.routeCreator = function(url, table, model, redirect) {
+    fuffle.post(url, fuffle.makeCreator(table, model, redirect));
+  }
+
+  fuffle.routeReader = function(url, view, model) {
+    fuffle.get(url, fuffle.makeReader(view, model));
+  }
+
+  fuffle.routeUpdater = function(url, table, model, redirect) {
+    fuffle.post(url, fuffle.makeUpdater(table, model, redirect));
+  }
+
+  fuffle.routeDeleter = function(url, table, model, redirect) {
+    fuffle.get(url, fuffle.makeDeleter(table, model, redirect));
+  }
+}

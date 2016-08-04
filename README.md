@@ -44,7 +44,9 @@ can be set with `fuffle.setViewDir(dir)`. Views are written in [pug](https://git
 
 ## Models
 Models are written in normal json, and can be stored with the same path
-as the view, but in the models directory, or in the view file like so:
+as the view, but in the models directory. This means the view 'views/index.pug'
+will try to use the 'models/index.json' model. Views may also have there model
+directly inline with the pug syntax, for example:
 ```
 pug syntax...
 //@{
@@ -67,6 +69,17 @@ fuffle.addMiddleware(function(request, response, next) {
  request.middlewareDone = true;
  next(request, response);
 });
+```
+
+## Fetchers
+Fetchers are name functions, which are called to parse models, for example:
+```
+// model.json
+{
+  "fetcher-name": {
+    "key": "args"
+  }
+}
 ```
 
 This model would call the fetcher-name function with the object `{"key": "args"}`
@@ -94,21 +107,10 @@ fuffle.putFetcher("fetcher-name", function(request, tofetch, next) {
 });
 ```
 
-## Fetchers
-Fetchers are name functions, which are called to parse models, for example:
-```
-// model.json
-{
-  "fetcher-name": {
-    "key": "args"
-  }
-}
-```
-
 ## Database
 Fuffle uses [nedb](https://github.com/louischatriot/nedb) as a database
-engine, so all data is stored in memory, and as json on the disk, making
-database calls extremely fast and light. Load a table into memory using
+engine, so all data is stored in memory, and as json in storage, making
+database calls extremely fast and light weight. Load a table into memory using
 `fuffle.loadTable("tableName");`. If the table doesn't exist, it will be created.
  You can then access the table using the "db" fetcher:
  ```
@@ -117,10 +119,12 @@ database calls extremely fast and light. Load a table into memory using
     "key": {
       "table": "tableName",
       "doc": {                    // only returns results that match this query
-        "query": "parameters"
+        "key": "value"
       },
       "single": true              // will return only the first result of the query
     }
   }
 }
  ```
+ This model would fetch data from the 'table' database, and return the first
+ object whose 'key' key has the value 'value'.
