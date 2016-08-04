@@ -25,16 +25,26 @@ in the current working directory with a fuffle environment set up.
 Fuffle's main goal is to minimize backend development. To do this,
 it uses built-in functions called response-makers. Use them like so:
 ```
-fuffle.get("/path/to/url", fuffle.makeReader("viewName"));
+fuffle.routeCreator('/create', 'tableName', 'modelName', '/path/to/redirect');
 ```
 This will make a route to "/path/to/url" that takes "get" requests,
 and sends the 'viewName' view. These response-makers are based on
 CRUD support, so there are only four:
 ```
-fuffle.post("/create", fuffle.makeCreator("tableName", "modelName", "/path/to/redirect"));
-fuffle.get("/read", fuffle.makeReader("viewName"));
-fuffle.post("/update", fuffle.makeUpdater("tableName", "modelName", "/path/to/redirect"));
-fuffle.post("/delete", fuffle.makeDeleter("tableName", "modelName", "/path/to/redirect"));
+fuffle.routeCreator('/create', 'tableName', 'modelName', '/path/to/redirect');
+fuffle.routeReader('/read', 'viewName');
+fuffle.routeUpdater('/update', 'tableName', 'modelName', '/path/to/redirect');
+fuffle.routeDeleter('/delete', 'tableName', 'modelName', '/path/to/redirect');
+```
+If none of these response-makers match that page's needs, you can use the simple
+routers to make your own routes.
+```
+fuffle.get('/', function(request, response) {
+  // handle get requests to the '/' url
+})
+fuffle.post('/', function(request, response) {
+  // handle post requests to the '/' url
+})
 ```
 
 ## Views
