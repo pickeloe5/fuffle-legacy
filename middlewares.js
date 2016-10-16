@@ -34,5 +34,21 @@ module.exports = [
     request.params = urlData.query;
     request.pathname = urlData.pathname;
     next(request, response);
+  },
+  function getCookies(request, response, next) {
+    if (!request.headers.cookie) {
+      request.cookies = {};
+      next(request, response);
+      return;
+    }
+    var raw = request.headers.cookie.split(';');
+    var cookies = {};
+    for (var i = 0; i < raw.length; i++) {
+      var cookie = raw[i];
+      var parts = cookie.split('=');
+      cookies[parts.shift().trim()] = decodeURI(parts.join('='));
+    }
+    request.cookies = cookies;
+    next(request, response);
   }
 ];

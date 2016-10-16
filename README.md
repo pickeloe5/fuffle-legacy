@@ -27,8 +27,8 @@ it uses built-in functions called response-makers. Use them like so:
 ```
 fuffle.routeCreator('/create', 'tableName', 'modelName', '/path/to/redirect');
 ```
-This will make a route to "/path/to/url" that takes "get" requests,
-and sends the 'viewName' view. These response-makers are based on
+This will make a route to "/path/to/url" that takes post requests,
+and sends the "viewName" view. These response-makers are based on
 CRUD support, so there are only four:
 ```
 fuffle.routeCreator('/create', 'tableName', 'modelName', '/path/to/redirect');
@@ -137,4 +137,5 @@ database calls extremely fast and light weight. Load a table into memory using
 }
  ```
  This model would fetch data from the 'table' database, and return the first
- object whose 'key' key has the value 'value'.
+ object whose 'key' key has the value 'value'. You can also get data from tables
+ in any way you wish by getting the the nedb instance via `fuffle.getTable("tableName")`.

@@ -47,6 +47,10 @@ exports.setters = function(fuffle) {
     exports.db[name].loadDatabase();
   };
 
+  fuffle.getTable = function(name) {
+    return exports.db[name];
+  }
+
   fuffle.setPort = function(p) {
     exports.port = p;
   };
