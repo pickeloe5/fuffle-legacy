@@ -9,13 +9,6 @@ function isFunction(obj) {
 
 function fetch(request, model, cb) {
   model = JSON.parse(JSON.stringify(model));
-  if (fs.existsSync(env.modelDir + "globals.json")) {
-    var globals = JSON.parse(fs.readFileSync(env.modelDir + "globals.json"));
-    for (var key in globals) {
-      if (!(key in model))
-        model[key] = globals[key];
-    }
-  }
   for (var key in model) {
     if (typeof model[key] == "object" && env.fetchers[key]) {
       env.fetchers[key](request, model[key], nextFetch(request, model, key));
@@ -35,8 +28,9 @@ function fetch(request, model, cb) {
 }
 
 function getJSON(view) {
+  var model = {};
   if (fs.existsSync(env.modelDir + view + ".json")) {
-    return JSON.parse(fs.readFileSync(env.modelDir + view + ".json"));
+    model = JSON.parse(fs.readFileSync(env.modelDir + view + ".json"));
   }
   var hitJson = false;
   var source = fs.readFileSync(env.viewDir + view + ".pug").toString();
@@ -53,9 +47,16 @@ function getJSON(view) {
     }
   }
   if (hitJson) {
-    return JSON.parse(json);
+    model = JSON.parse(json);
   }
-  return {};
+  if (fs.existsSync(env.modelDir + "globals.json")) {
+    var globals = JSON.parse(fs.readFileSync(env.modelDir + "globals.json"));
+    for (var key in globals) {
+      if (!(key in model))
+        model[key] = globals[key];
+    }
+  }
+  return model;
 }
 
 exports.makers = function(fuffle) {
