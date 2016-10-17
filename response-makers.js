@@ -3,8 +3,19 @@ var pug = require("pug");
 
 var env = require("./env.js");
 
+function isFunction(obj) {
+  return obj && {}.toString.call(obj) === '[object Function]';
+}
+
 function fetch(request, model, cb) {
   model = JSON.parse(JSON.stringify(model));
+  if (fs.existsSync(env.modelDir + "globals.json")) {
+    var globals = JSON.parse(fs.readFileSync(env.modelDir + "globals.json"));
+    for (var key in globals) {
+      if (!(key in model))
+        model[key] = globals[key];
+    }
+  }
   for (var key in model) {
     if (typeof model[key] == "object" && env.fetchers[key]) {
       env.fetchers[key](request, model[key], nextFetch(request, model, key));
@@ -58,8 +69,12 @@ exports.makers = function(fuffle) {
           if (docs.length == 0) doc["_inc"] = 0;
           else doc["_inc"] = parseInt(docs[0]["_inc"]) + 1;
           env.db[table].insert(doc, function(err, newdoc) {
-            response.writeHead(302, {"Location": redirect});
-            response.end();
+            if (isFunction(redirect)) {
+              redirect(request, response);
+            } else {
+              response.writeHead(302, {"Location": redirect});
+              response.end();
+            }
           })
         })
       })
@@ -85,8 +100,12 @@ exports.makers = function(fuffle) {
         env.db[table].find({"_id": doc["_id"]}, function(err, preDoc) {
           doc["_inc"] = preDoc[0]["_inc"];
           env.db[table].update({"_id": doc["_id"]}, doc, {}, function(err) {
-            response.writeHead(302, {"Location": redirect});
-            response.end();
+            if (isFunction(redirect)) {
+              redirect(request, response);
+            } else {
+              response.writeHead(302, {"Location": redirect});
+              response.end();
+            }
           })
         })
       })
@@ -98,10 +117,12 @@ exports.makers = function(fuffle) {
       model = JSON.parse(fs.readFileSync(env.modelDir + model + ".json"));
     return function(request, response) {
       fetch(request, model, function(doc) {
-        env.db[table].remove(doc, {}, function(err) {
+        if (isFunction(redirect)) {
+          redirect(request, response);
+        } else {
           response.writeHead(302, {"Location": redirect});
           response.end();
-        })
+        }
       })
     }
   }

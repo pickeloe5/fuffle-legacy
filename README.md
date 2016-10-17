@@ -27,8 +27,8 @@ it uses built-in functions called response-makers. Use them like so:
 ```
 fuffle.routeCreator('/create', 'tableName', 'modelName', '/path/to/redirect');
 ```
-This will make a route to "/path/to/url" that takes post requests,
-and sends the "viewName" view. These response-makers are based on
+This will make a route to "/path/to/url" that adds `modelName` to `tableName`,
+and redirects to "/path/to/redirect". These response-makers are based on
 CRUD support, so there are only four:
 ```
 fuffle.routeCreator('/create', 'tableName', 'modelName', '/path/to/redirect');
@@ -80,40 +80,77 @@ fuffle.addMiddleware(function(request, response, next) {
  next(request, response);
 });
 ```
+### Current Middleware
+ - Cookies: `request.cookies.cookieName`
+ - `Post` data: `request.body.formName`
+ - `Get` parameters: `request.params.paramName`
 
 ## Fetchers
-Fetchers are name functions, which are called to parse models, for example:
+Fetchers are named functions, which are called to parse models, for example:
 ```
 // model.json
 {
-  "fetcher-name": {
-    "key": "args"
+  "string-doubler": {
+    "doubled": "a string."
   }
 }
 ```
+In this example, Fuffle would call the fetcher named "string-doubler" with the object
+`{ "doubled": "a string." }`. The "string-doubler" function would then process this string
+and add `"doubled": "a string.a string."` to the model, which ends up being:
+```
+{
+  "doubled": "a string.a string.
+}
+```
+### Current Fetchers
+ - Database
+   ```
+   {
+     "db": {
+       "user": { // returns only John's user
+         "table": "users",
+         "doc": {
+           "name": "John"
+         },
+         "single": "true"
+       },
+       "redFish": { // returns all fish with "color": "red"
+         "table": "fish",
+         "doc": {
+           "color": "red"
+         }
+       },
+       "barrels": { // returns all barrels
+         "table": "barrels"
+       }
+     }
+   }
+   ```
+ - Form Data
+   ```
+   {
+     "post": { // returns the value of the inputName field
+       "variable": "inputName"
+     }
+   }
+   ```
+ - URL Parameters
+   ```
+   {
+     "get": { // returns the value of the url parameter keyName
+       "variable": "keyName"
+     }
+   }
+   ```
 
-This model would call the fetcher-name function with the object `{"key": "args"}`
-as a parameter. The fetcher-name function would parse this data, and return the
-result, which is added to the model, for example:
-```
-// model.json
-{
- "string-doubler": {
-   "echo": "Hello, "
- }
-}
-// string-doubler({"echo": "Hello, "}) is called, which returns this:
-{
- "echo": "Hello, Hello, "
-}
-```
 You can create a fetcher with the putFetcher function:
 ```
-fuffle.putFetcher("fetcher-name", function(request, tofetch, next) {
- for (var key in tofetch) {
-   tofetch[key] = "fetched";
+fuffle.putFetcher("string-doubler", function(request, tofetch, next) {
+ for (var key in tofetch) {                         // loop through all keys in object to fetch
+   tofetch[key] = tofetch[key] + tofetch[key];      // double the string
  }
- next(tofetch);
+ next(tofetch);                                     // proceed to the next fetcher
 });
 ```
 
@@ -122,20 +159,4 @@ Fuffle uses [nedb](https://github.com/louischatriot/nedb) as a database
 engine, so all data is stored in memory, and as json in storage, making
 database calls extremely fast and light weight. Load a table into memory using
 `fuffle.loadTable("tableName");`. If the table doesn't exist, it will be created.
- You can then access the table using the "db" fetcher:
- ```
-{
-  "db": {
-    "key": {
-      "table": "tableName",
-      "doc": {                    // only returns results that match this query
-        "key": "value"
-      },
-      "single": true              // will return only the first result of the query
-    }
-  }
-}
- ```
- This model would fetch data from the 'table' database, and return the first
- object whose 'key' key has the value 'value'. You can also get data from tables
- in any way you wish by getting the the nedb instance via `fuffle.getTable("tableName")`.
+ You can then access the table using the ["db" fetcher](#fetchers).
