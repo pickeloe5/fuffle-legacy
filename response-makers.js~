@@ -118,14 +118,12 @@ exports.makers = function(fuffle) {
       model = JSON.parse(fs.readFileSync(env.modelDir + model + ".json"));
     return function(request, response) {
       fetch(request, model, function(doc) {
-        env.db[table].remove(doc, {}, function(err, numRemoved) {
-          if (isFunction(redirect)) {
-            redirect(request, response);
-          } else {
-            response.writeHead(302, {"Location": redirect});
-            response.end();
-          }
-        })
+        if (isFunction(redirect)) {
+          redirect(request, response);
+        } else {
+          response.writeHead(302, {"Location": redirect});
+          response.end();
+        }
       })
     }
   }
