@@ -1,12 +1,13 @@
 var fuffle = require("fuffle");
 
-// Loads that 'table' database into memory.
+// Loads the 'table' database into memory, and creates the file if it doesn't
+// already exist.
 fuffle.loadTable("table");
 
-// Routes all get requests to '/' to a function then sends the 'index' view.
+// Routes all get requests to '/' to a function that sends the 'index' view.
 fuffle.routeReader('/', 'index');
 
-// Routes all post requests to '/add' to a functino that adds
+// Routes all post requests to '/add' to a function that adds
 // an object derived from the 'add' model to the 'table' database.
 fuffle.routeCreator('/add', 'table', 'add', '/');
 
@@ -18,6 +19,6 @@ fuffle.routeDeleter('/delete', 'table', 'delete', '/');
 // database with an object derived from the 'update' model.
 fuffle.routeUpdater('/update', 'table', 'update', '/');
 
-// Starts the fuffle server on port 300 defaultly
-// Use fuffle.setPort(port) to change this.
+// Starts the fuffle server on port 3000 by default, but you can use
+// fuffle.setPort(port) to change this.
 fuffle.start();
