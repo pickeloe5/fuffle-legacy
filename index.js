@@ -29,11 +29,21 @@ function handleRequest(request, response) {
       }
     }
     if (!hit) {
-      if (fs.existsSync(env.staticDir + url) && fs.statSync(env.staticDir + url).isFile()) {
-        response.end(fs.readFileSync(env.staticDir + url));
+      var staticUrl = env.staticDir + url.substring(0, url.length - 1);
+      if (fs.existsSync(staticUrl) && fs.statSync(staticUrl).isFile()) {
+        if (staticUrl.endsWith('.html')) response.setHeader('Content-Type', 'text/html');
+        else if (staticUrl.endsWith('.css')) response.setHeader('Content-Type', 'text/css');
+        else if (staticUrl.endsWith('.js')) response.setHeader('Content-Type', 'text/js');
+        else if (staticUrl.endsWith('.png')) response.setHeader('Content-Type', 'image/png');
+        else if (staticUrl.endsWith('.jpg')) response.setHeader('Content-Type', 'image/jpg');
+        response.end(fs.readFileSync(staticUrl));
       } else {
-        if (env.error["404"]) env.error["404"](request, response);
-        else response.end("404");
+        if (env.error["404"]) {
+          env.error["404"](request, response);
+        } else {
+          response.writeHead(404);
+          response.end();
+        }
       }
     }
   }
