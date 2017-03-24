@@ -3,7 +3,7 @@ Fuffle is a light weight node.js web framework, built to minimize
 backend development. Why take time to write controllers, models, and
 views all separately when you can generate models and controllers from
 your views? Well, that's exactly what Fuffle solves, write your views
-and a json object for your model either in the view, or in a seperate file.
+and a json object for your model either in the view, or in a separate file.
 Your models can hold static values, or pull from a database, and you can
 still write custom controllers if you want.
 

@@ -1,0 +1,12 @@
+html
+  head
+    title Todo List
+  body
+    h1 Todo List
+    ul
+      each item in items
+        li= item.body
+    form(method="POST", action="/add", enctype="multipart/form-data")
+      label(for="body") Add:
+      input(type="file", name="body", id="body", placeholder="grocery shopping")
+      input(type="submit", value="Insert")
