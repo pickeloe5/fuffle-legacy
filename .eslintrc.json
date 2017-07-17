@@ -1,0 +1,12 @@
+{
+    "extends": "google",
+    "rules": {
+      "semi": [
+        "error",
+        "never"
+      ]
+    },
+    "parserOptions": {
+      "ecmaVersion": 6
+    }
+}
