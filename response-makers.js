@@ -1,6 +1,7 @@
 let fs = require('fs')
 
 const util = require('./util.js')
+const viewEngines = require('./view-engines.js')
 
 module.exports = (fuffle) => {
   const env = fuffle.env
@@ -146,6 +147,7 @@ module.exports = (fuffle) => {
     return function(request, response) {
       const cb = (model) => {
         fetch(request, model, function(args) {
+          if (env.viewEngine == viewEngines.pug) args.basedir = env.viewDir
           env.viewEngine(env.viewDir + view + '.' + env.viewExtension, args,
               (result) => {
             response.end(result)
