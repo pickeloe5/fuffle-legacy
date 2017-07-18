@@ -23,8 +23,8 @@ requests.
 - [Database](#database)
 
 ## Generator
-You can generate a fuffle project by installing fuffle globally `npm install fuffle -g`,
- and running the command `fuffle make project-name`. This will create a folder
+You can generate a fuffle project by installing fuffle globally `npm install fuffle-cli -g`,
+and running the command `fuffle make project-name`. This will create a folder
 in the current working directory with a fuffle environment set up.
 
 ### Project Structure
