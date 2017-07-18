@@ -1,5 +1,4 @@
 let fs = require('fs')
-let pug = require('pug')
 
 const util = require('./util.js')
 
@@ -67,7 +66,8 @@ module.exports = (fuffle) => {
       model = JSON.parse(fs.readFileSync(env.modelDir + view + '.json'))
     }
     let hitJson = false
-    let source = fs.readFileSync(env.viewDir + view + '.pug').toString()
+    let source = fs.readFileSync(env.viewDir + view + '.' + env.viewExtension)
+                   .toString()
     let json = ''
     for (let i = 0; i < source.length; i++) {
       if (source[i] == '@' && source[i+1] == '{') {
@@ -140,7 +140,10 @@ module.exports = (fuffle) => {
     return function(request, response) {
       if (model == null) model = getJSON(view)
       fetch(request, model, function(args) {
-        response.end(pug.renderFile(env.viewDir + view + '.pug', args))
+        env.viewEngine(env.viewDir + view + '.' + env.viewExtension, args,
+            (result) => {
+          response.end(result)
+        })
       })
     }
   }

@@ -1,6 +1,8 @@
 const path = require('path')
 const Nedb = require('nedb')
 
+const viewEngines = require('./view-engines.js')
+const cssPreprocs = require('./css-preprocs.js')
 const middlewares = require('./middlewares.js')
 
 let projectDir = path.dirname(require.main.filename)
@@ -19,6 +21,10 @@ module.exports = (fuffle) => {
     middlewares,
     db: {},
     error: {},
+
+    viewEngine: viewEngines.pug,
+    viewExtension: 'pug',
+    cssPreproc: cssPreprocs.sass,
   }
 
   /**
