@@ -96,6 +96,7 @@ module.exports = (fuffle) => {
             }
           }
           if (hitJson) addGlobals(JSON.parse(json))
+          else addGlobals({})
         })
       }
     })
