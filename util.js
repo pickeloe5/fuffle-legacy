@@ -9,3 +9,7 @@ module.exports.objectHasKey = (obj, key) => {
   return Object.prototype.hasOwnProperty.call(obj, key) ||
           {}.hasOwnProperty.call(obj, key)
 }
+
+module.exports.isFunction = (obj) => {
+  return !!(obj && obj.constructor && obj.call && obj.apply)
+}

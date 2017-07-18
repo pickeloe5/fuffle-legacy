@@ -4,6 +4,7 @@ const Nedb = require('nedb')
 const viewEngines = require('./view-engines.js')
 const cssPreprocs = require('./css-preprocs.js')
 const middlewares = require('./middlewares.js')
+const util = require('./util.js')
 
 let projectDir = path.dirname(require.main.filename)
 
@@ -27,6 +28,21 @@ module.exports = (fuffle) => {
 
     cssPreproc: cssPreprocs.sass,
     cssExtension: 'scss',
+  }
+
+  fuffle.setViewEngine = (engine, extension) => {
+    fuffle.env.viewExtension = extension
+    if (util.isFunction(engine)) {
+      fuffle.env.viewEngine = engine
+    } else {
+      if (viewEngines[engine]) {
+        fuffle.env.viewEngine = viewEngines[engine]
+      } else {
+        fuffle.env.viewEngine = viewEngines.html
+        fuffle.env.viewExtension = 'html'
+        console.err('Invalid view engine, falling back to html.')
+      }
+    }
   }
 
   /**

@@ -45,7 +45,7 @@ project-name
 |   +-- static files...
 +-- views
 |   +-- index.pug
-|   +-- pug views...
+|   +-- views...
 +-- app.js
 +-- package.json
 ```
@@ -53,7 +53,7 @@ project-name
 ## Routing
 Fuffle's main goal is to minimize backend development. To do this,
 it uses built-in functions called response-makers. Use them like so:
-```
+```javascript
 fuffle.routeCreator('/create', 'tableName', 'modelName', '/path/to/redirect');
 ```
 This will make a route to "/path/to/url" that adds `modelName` to `tableName`,
@@ -67,11 +67,11 @@ fuffle.routeDeleter('/delete', 'tableName', 'modelName', '/path/to/redirect');
 ```
 If none of these response-makers match that page's needs, you can use the simple
 routers to make your own routes.
-```
-fuffle.get('/', function(request, response) {
+```javascript
+fuffle.get('/', (request, response) => {
   // handle get requests to the '/' url
 })
-fuffle.post('/', function(request, response) {
+fuffle.post('/', (request, response) => {
   // handle post requests to the '/' url
 })
 ```
@@ -79,7 +79,28 @@ fuffle.post('/', function(request, response) {
 ## Views
 Views are loaded from the `views` directory by default, but this directory
 can be set with `fuffle.setViewDir(dir)`. Views are written in
-[pug](https://pugjs.org/) (formerly jade).
+[pug](https://pugjs.org/) (formerly jade) by default. You can also use vash,
+handlebars, or plain html using `fuffle.setViewEngine(engine, fileExtension)`.
+
+### Built-in View Engines
+| Engine | File Extension | Call |
+| ------ | -------------- | ---- |
+| [Vash](https://www.npmjs.com/package/vash) | .vash | `fuffle.setViewEngine('vash', 'vash')` |
+| [Handlebars](https://www.npmjs.com/package/handlebars) | .hbs | `fuffle.setViewEngine('handlebars', 'hbs')` |
+| Html | .html | `fuffle.setViewEngine('html', 'html')` |
+
+### Other View Engines
+We don't have every view engine built in, but you can add any one you'd like.
+```javascript
+const ejs = require('ejs')
+const fs = require('fs')
+
+fuffle.setViewEngine((path, data, cb) => {
+  ejs.renderFile(path, data, (err, str) => {
+    cb(str)
+  })
+})
+```
 
 ## Models
 Models are written in normal json, and can be stored with the same path
@@ -89,24 +110,31 @@ directly inline with the pug syntax, for example:
 ```
 pug syntax...
 //@{
-    {
-      "key": "value",
-      "key": {
-        "value": "value-value"
-      }
+    "key": "value",
+    "key": {
+      "value": "value-value"
     }
   }@
 more pug syntax...
 ```
+Or in other view engines
+```
+<!--@{
+  "key": "value",
+  "key": {
+    "value": "value-value"
+  }
+}@-->
+```
 
 ## Middleware
 Middleware is called directly after the request is made, the route hasn't been
-processed yet, and the model hasn't been fetched. You can add a middleware with
-the addMiddleware function:
-```
-fuffle.addMiddleware(function(request, response, next) {
- request.middlewareDone = true;
- next(request, response);
+processed yet, and the model hasn't been fetched. You can add middleware with
+the `addMiddleware` function:
+```javascript
+fuffle.addMiddleware((request, response, next) => {
+  request.customMiddlewareDone = true;
+  next(request, response);
 });
 ```
 ### Current Middleware
@@ -115,7 +143,7 @@ fuffle.addMiddleware(function(request, response, next) {
  - Get parameters: `request.params.paramName`
 
 ## Fetchers
-Fetchers are named functions, which are called to parse models, for example:
+Fetchers are called to parse models, for example:
 ```
 // model.json
 {
@@ -132,42 +160,42 @@ and add `"doubled": "a string.a string."` to the model, which ends up being:
   "doubled": "a string.a string.
 }
 ```
-### Current Fetchers
+### Built-in Fetchers
  - Database
-   ```
+   ```json
    {
      "db": {
-       "user": { // returns only John's user
+       "user": { "_comment": "returns only John's user",
          "table": "users",
          "doc": {
            "name": "John"
          },
          "single": "true"
        },
-       "redFish": { // returns all fish with "color": "red"
+       "redFish": { "_comment": "returns all fish with 'color': 'red'",
          "table": "fish",
          "doc": {
            "color": "red"
          }
        },
-       "barrels": { // returns all barrels
+       "barrels": { "_comment": "returns all barrels",
          "table": "barrels"
        }
      }
    }
    ```
  - Form Data
-   ```
+   ```json
    {
-     "post": { // returns the value of the inputName field
+     "post": { "_comment": "returns the value of the inputName field",
        "variable": "inputName"
      }
    }
    ```
  - URL Parameters
-   ```
+   ```json
    {
-     "get": { // returns the value of the url parameter keyName
+     "get": { "_comment": "returns the value of the url parameter keyName",
        "variable": "keyName"
      }
    }
@@ -175,8 +203,8 @@ and add `"doubled": "a string.a string."` to the model, which ends up being:
 
 ## Custom Fetchers
 You can create a fetcher with the putFetcher function:
-```
-fuffle.putFetcher("string-doubler", function(request, tofetch, next) {
+```javascript
+fuffle.putFetcher("string-doubler", (request, tofetch, next) => {
  for (var key in tofetch) {                         // loop through all keys in object to fetch
    var toBeDoubled = tofetch[key];                  // get the string to be doubled
    tofetch[key] = toBeDoubled + toBeDoubled;        // double the string

@@ -58,40 +58,46 @@ module.exports = (fuffle) => {
    * Gets the json pertaining to the given view
    *
    * @param  {string} view - The name of the view to get json from
-   * @return {Object}      - The json relating to the specified view
+   * @param  {Function} cb - Called upon completion
    */
-  function getJSON(view) {
-    let model = {}
-    if (fs.existsSync(env.modelDir + view + '.json')) {
-      model = JSON.parse(fs.readFileSync(env.modelDir + view + '.json'))
-    }
-    let hitJson = false
-    let source = fs.readFileSync(env.viewDir + view + '.' + env.viewExtension)
-                   .toString()
-    let json = ''
-    for (let i = 0; i < source.length; i++) {
-      if (source[i] == '@' && source[i+1] == '{') {
-        hitJson = true
-        i += 2
-        while (!(source[i] == '}' && source[i+1] == '@')) {
-          json += source[i]
-          i++
+  function getJSON(view, cb) {
+    const addGlobals = (model) => {
+      fs.readFile(env.modelDir + 'globals.json', 'utf-8', (err, source) => {
+        if (!err) {
+          let globals = JSON.parse(source)
+          for (let key in globals) {
+            if (!(key in model)) {
+              model[key] = globals[key]
+            }
+          }
         }
-        break
+        cb(model)
+      })
+    }
+    fs.readFile(env.modelDir + view + '.json', 'utf-8', (err, source) => {
+      if (!err) {
+        addGlobals(JSON.parse(fs.readFileSync(env.modelDir + view + '.json')))
+      } else {
+        fs.readFile(env.viewDir + view + '.' + env.viewExtension, 'utf-8',
+            (err, viewSource) => {
+          if (err) throw err
+          let hitJson = false
+          let json = ''
+          for (let i = 0; i < viewSource.length; i++) {
+            if (viewSource[i] == '@' && viewSource[i+1] == '{') {
+              hitJson = true
+              i++
+              while (!(viewSource[i] == '@' && viewSource[i-1] == '}')) {
+                json += viewSource[i]
+                i++
+              }
+              break
+            }
+          }
+          if (hitJson) addGlobals(JSON.parse(json))
+        })
       }
-    }
-    if (hitJson) {
-      model = JSON.parse(json)
-    }
-    if (fs.existsSync(env.modelDir + 'globals.json')) {
-      let globals = JSON.parse(fs.readFileSync(env.modelDir + 'globals.json'))
-      for (let key in globals) {
-        if (!(key in model)) {
-          model[key] = globals[key]
-        }
-      }
-    }
-    return model
+    })
   }
 
   /**
@@ -138,13 +144,19 @@ module.exports = (fuffle) => {
       model = JSON.parse(fs.readFileSync(env.modelDir + model + '.json'))
     }
     return function(request, response) {
-      if (model == null) model = getJSON(view)
-      fetch(request, model, function(args) {
-        env.viewEngine(env.viewDir + view + '.' + env.viewExtension, args,
-            (result) => {
-          response.end(result)
+      const cb = (model) => {
+        fetch(request, model, function(args) {
+          env.viewEngine(env.viewDir + view + '.' + env.viewExtension, args,
+              (result) => {
+            response.end(result)
+          })
         })
-      })
+      }
+      if (!model) {
+        getJSON(view, cb)
+      } else {
+        cb(model)
+      }
     }
   }
 
