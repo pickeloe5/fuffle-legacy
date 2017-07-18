@@ -101,6 +101,7 @@ function handleRequest(request, response) {
    */
   function rectifyUrl(url) {
     if (url[0] != '/') url = '/' + url
+    if (url[url.length - 1] == '/') url = url.slice(0, -1)
     return url
   }
 }
