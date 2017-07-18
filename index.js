@@ -63,7 +63,8 @@ function handleRequest(request, response) {
           let css = false
           if (staticUrl.endsWith('.html')) {
             response.setHeader('Content-Type', 'text/html')
-          } else if (staticUrl.endsWith('.css')) {
+          } else if (staticUrl.endsWith('.css') ||
+                     staticUrl.endsWith('.' + env.cssExtension)) {
             css = true
             response.setHeader('Content-Type', 'text/css')
           } else if (staticUrl.endsWith('.js')) {

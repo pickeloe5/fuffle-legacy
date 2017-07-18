@@ -24,7 +24,9 @@ module.exports = (fuffle) => {
 
     viewEngine: viewEngines.pug,
     viewExtension: 'pug',
+
     cssPreproc: cssPreprocs.sass,
+    cssExtension: 'scss',
   }
 
   /**
