@@ -1,23 +1,21 @@
-const env = require('./env.js')
-
-exports.routers = function(fuffle) {
-  fuffle.get = function(url, callback) {
-    env.routes.push({
+module.exports = (fuffle) => {
+  fuffle.get = (url, callback) => {
+    fuffle.env.routes.push({
       'url': url,
       'method': 'GET',
       'callback': callback,
     })
   }
 
-  fuffle.post = function(url, callback) {
-    env.routes.push({
+  fuffle.post = (url, callback) => {
+    fuffle.env.routes.push({
       'url': url,
       'method': 'POST',
       'callback': callback,
     })
   }
 
-  fuffle.error = function(code, callback) {
-    env.error[code] = callback
+  fuffle.error = (code, callback) => {
+    fuffle.env.error[code] = callback
   }
 }

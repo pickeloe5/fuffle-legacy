@@ -6,7 +6,7 @@ html
     ul
       each item in items
         li= item.body
-    form(method="POST", action="/add", enctype="multipart/form-data")
+    form(method="POST", action="/add")
       label(for="body") Add:
-      input(type="file", name="body", id="body", placeholder="grocery shopping")
+      input(type="text", name="body", id="body", placeholder="grocery shopping")
       input(type="submit", value="Insert")

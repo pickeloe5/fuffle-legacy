@@ -2,56 +2,39 @@ const path = require('path')
 const Nedb = require('nedb')
 
 const middlewares = require('./middlewares.js')
-const fetchers = require('./fetchers.js')
 
-exports.port = 3000
-exports.projectDir = path.dirname(require.main.filename)
-exports.viewDir = exports.projectDir + '/views/'
-exports.dataDir = exports.projectDir + '/data/'
-exports.modelDir = exports.projectDir + '/models/'
-exports.staticDir = exports.projectDir + '/static'
+let projectDir = path.dirname(require.main.filename)
 
-exports.routes = []
-exports.middlewares = middlewares
-exports.fetchers = fetchers
-exports.db = {}
-exports.error = {}
+module.exports = (fuffle) => {
+  fuffle.env = {
+    port: 3000,
 
-exports.setters = function(fuffle) {
-  fuffle.setViewDir = function(dir) {
-    exports.viewsDir = dir
+    projectDir,
+    viewDir: projectDir + '/views/',
+    dataDir: projectDir + '/data/',
+    modelDir: projectDir + '/models/',
+    staticDir: projectDir + '/static',
+
+    routes: [],
+    middlewares,
+    db: {},
+    error: {},
   }
 
-  fuffle.setDataDir = function(dir) {
-    exports.dataDir = dir
+  fuffle.setViewDir = (dir) => fuffle.env.viewsDir = dir
+  fuffle.setDataDir = (dir) => fuffle.env.dataDir = dir
+  fuffle.setModelDir = (dir) => fuffle.env.modelDir = dir
+  fuffle.setStaticDir = (dir) => fuffle.env.staticDir = dir
+
+  fuffle.addMiddleware = (middleware) => fuffle.env.middlewares.push(middleware)
+  fuffle.putFetcher = (fetcherName, fetcher) =>
+    fuffle.env.fetchers[fetcherName] = fetcher
+
+  fuffle.loadTable = (name) => {
+    fuffle.env.db[name] = new Nedb(fuffle.env.dataDir + name + '.dat')
+    fuffle.env.db[name].loadDatabase()
   }
 
-  fuffle.setModelDir = function(dir) {
-    exports.modelDir = dir
-  }
-
-  fuffle.setStaticDir = function(dir) {
-    exports.staticDir = dir
-  }
-
-  fuffle.addMiddleware = function(middleware) {
-    exports.middlewares.push(middleware)
-  }
-
-  fuffle.putFetcher = function(fetcherName, fetcher) {
-    exports.fetchers[fetcherName] = fetcher
-  }
-
-  fuffle.loadTable = function(name) {
-    exports.db[name] = new Nedb(exports.dataDir + name + '.dat')
-    exports.db[name].loadDatabase()
-  }
-
-  fuffle.getTable = function(name) {
-    return exports.db[name]
-  }
-
-  fuffle.setPort = function(p) {
-    exports.port = p
-  }
+  fuffle.getTable = (name) => fuffle.env.db[name]
+  fuffle.setPort = (port) => fuffle.env.port = port
 }

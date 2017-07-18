@@ -1,8 +1,9 @@
 const http = require('http')
 const fs = require('fs')
 
-const env = require('./env.js')
+let env = require('./env.js')
 const responseMakers = require('./response-makers.js')
+const fetchers = require('./fetchers.js')
 const routers = require('./routers.js')
 
 /**
@@ -94,16 +95,19 @@ function handleRequest(request, response) {
   }
 }
 
-exports.start = function(cb) {
+env(module.exports)
+env = module.exports.env
+env.fetchers = fetchers(module.exports)
+responseMakers(module.exports)
+routers(module.exports)
+
+module.exports.start = (cb) => {
+  let port = module.exports.env.port
   if (!cb) {
     cb = () => {
-      console.log('Fuffle listening on port ' + env.port)
+      console.log('Fuffle listening on port ' + port)
     }
   }
   let server = http.createServer(handleRequest)
-  server.listen(env.port, cb)
+  server.listen(port, cb)
 }
-
-env.setters(module.exports)
-responseMakers.makers(module.exports)
-routers.routers(module.exports)
