@@ -4,6 +4,15 @@ module.exports = (fuffle) => {
   const env = fuffle.env
 
   return {
+
+    /**
+     * Fetches data from a database table based on given
+     * paramaters from the model
+     *
+     * @param {Object} request - The request this data should pertain to
+     * @param {Object} model   - The model to fetch data for
+     * @param {Function} next  - Called to move on to the next fetcher
+     */
     db: (request, model, next) => {
       let result = {}
       check()
@@ -44,6 +53,14 @@ module.exports = (fuffle) => {
       }
     },
 
+    /**
+     * Fetches data from the request body based on given
+     * paramaters from the model
+     *
+     * @param {Object} request - The request this data should pertain to
+     * @param {Object} model   - The model to fetch data for
+     * @param {Function} next  - Called to move on to the next fetcher
+     */
     post: (request, model, next) => {
       let result = {}
       for (let key in model) {
@@ -54,6 +71,14 @@ module.exports = (fuffle) => {
       next(result)
     },
 
+    /**
+     * Fetches data from the url query based on given
+     * paramaters from the model
+     *
+     * @param {Object} request - The request this data should pertain to
+     * @param {Object} model   - The model to fetch data for
+     * @param {Function} next  - Called to move on to the next fetcher
+     */
     get: (request, model, next) => {
       let result = {}
       for (let key in model) {

@@ -21,20 +21,89 @@ module.exports = (fuffle) => {
     error: {},
   }
 
-  fuffle.setViewDir = (dir) => fuffle.env.viewsDir = dir
-  fuffle.setDataDir = (dir) => fuffle.env.dataDir = dir
-  fuffle.setModelDir = (dir) => fuffle.env.modelDir = dir
-  fuffle.setStaticDir = (dir) => fuffle.env.staticDir = dir
+  /**
+   * Sets the directory fuffle looks for views in
+   *
+   * @param {string} dir - The new directory relative to the project directory
+   */
+  fuffle.setViewDir = (dir) => {
+    fuffle.env.viewsDir = dir
+  }
 
-  fuffle.addMiddleware = (middleware) => fuffle.env.middlewares.push(middleware)
-  fuffle.putFetcher = (fetcherName, fetcher) =>
+  /**
+   * Sets the directory fuffle looks for data in
+   *
+   * @param {string} dir - The new directory relative to the project directory
+   */
+  fuffle.setDataDir = (dir) => {
+    fuffle.env.dataDir = dir
+  }
+
+  /**
+   * Sets the directory fuffle looks for models in
+   *
+   * @param {string} dir - The new directory relative to the project directory
+   */
+  fuffle.setModelDir = (dir) => {
+    fuffle.env.modelDir = dir
+  }
+
+  /**
+   * Sets the directory fuffle looks for statis files in
+   *
+   * @param {string} dir - The new directory relative to the project directory
+   */
+  fuffle.setStaticDir = (dir) => {
+    fuffle.env.staticDir = dir
+  }
+
+  /**
+   * Adds a middleware function
+   *
+   * @param {Function} middleware - The middleware function(req, res, next)
+   */
+  fuffle.addMiddleware = (middleware) => {
+    fuffle.env.middlewares.push(middleware)
+  }
+
+  /**
+   * Adds a fetcher function with the specified name
+   *
+   * @param {string}   fetcherName - The name of the fetcher
+   * @param {Function} fetcher     - The fetcher function(req, model, next)
+   */
+  fuffle.putFetcher = (fetcherName, fetcher) => {
     fuffle.env.fetchers[fetcherName] = fetcher
+  }
 
+
+  /**
+   * Loads a table into memory. If the file doesn't exist, it's created.
+   *
+   * @param {string} name - The name of the table to lead
+   */
   fuffle.loadTable = (name) => {
     fuffle.env.db[name] = new Nedb(fuffle.env.dataDir + name + '.dat')
     fuffle.env.db[name].loadDatabase()
   }
 
-  fuffle.getTable = (name) => fuffle.env.db[name]
-  fuffle.setPort = (port) => fuffle.env.port = port
+
+  /**
+   * Gets a database table
+   *
+   * @param {string} name - The name of the desired table
+   */
+  fuffle.getTable = (name) => {
+    fuffle.env.db[name]
+  }
+
+
+  /**
+   * Sets the port for fuffle to listen on
+   *
+   * @param {Number} port - The port to listen on
+   */
+  fuffle.setPort = (port) => {
+    fuffle.env.port = port
+  }
 }

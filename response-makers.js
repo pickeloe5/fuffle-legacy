@@ -7,21 +7,21 @@ module.exports = (fuffle) => {
   const env = fuffle.env
 
   /**
-   * isFunction - Checks if the given obj is a function
+   * Checks if the given obj is a function
    *
-   * @param  {Object}  obj The object to check
-   * @return {Boolean}     True if the object is a function
+   * @param  {Object}  obj - The object to check
+   * @return {Boolean}     - True if the object is a function
    */
   function isFunction(obj) {
     return obj && {}.toString.call(obj) === '[object Function]'
   }
 
   /**
-   * fetch - Calls any fetchers that the model requires
+   * Calls any fetchers that the model requires
    *
-   * @param  {Object}   request The request to fetch data from
-   * @param  {Object}   model   The model to fetch data for
-   * @param  {Function} cb      A callback to call upon completion
+   * @param  {Object}   request - The request to fetch data from
+   * @param  {Object}   model   - The model to fetch data for
+   * @param  {Function} cb      - A callback to call upon completion
    */
   function fetch(request, model, cb) {
     model = JSON.parse(JSON.stringify(model))
@@ -35,12 +35,12 @@ module.exports = (fuffle) => {
 
 
     /**
-     * nextFetch - Returns a functiont to process the next fetcher
+     * Returns a function to process the next fetcher
      *
-     * @param  {Object}  request     The request to fetch data from
-     * @param  {Object}  model       The model to fetch data for
-     * @param  {string}  fetcherKey  The key to fetch from the model
-     * @return {Function}            A function to continue to the next fetch
+     * @param  {Object}  request     - The request to fetch data from
+     * @param  {Object}  model       - The model to fetch data for
+     * @param  {string}  fetcherKey  - The key to fetch from the model
+     * @return {Function}            - A function to continue to the next fetch
      */
     function nextFetch(request, model, fetcherKey) {
       return function(result) {
@@ -56,10 +56,10 @@ module.exports = (fuffle) => {
   }
 
   /**
-   * getJSON - description
+   * Gets the json pertaining to the given view
    *
-   * @param  {string} view The name of the view to get json from
-   * @return {Object}      The json relating to the specified view
+   * @param  {string} view - The name of the view to get json from
+   * @return {Object}      - The json relating to the specified view
    */
   function getJSON(view) {
     let model = {}
@@ -94,6 +94,15 @@ module.exports = (fuffle) => {
     return model
   }
 
+  /**
+   * Makes a function to insert an element into a database table
+   *
+   * @param  {string}   table    - The table to insert data to
+   * @param  {Object}   model    - The pre-fetch model to insert into the table
+   * @param  {string}   redirect - The url to redirect to after inserting
+   * @return {Function}          - A function that inserts the pre-fetch
+   *                               model and redirects to the specified url
+   */
   fuffle.makeCreator = (table, model, redirect) => {
     if (typeof model == 'string') {
       model = JSON.parse(fs.readFileSync(env.modelDir + model + '.json'))
@@ -117,6 +126,13 @@ module.exports = (fuffle) => {
     }
   }
 
+  /**
+   * Makes a function to send the specified view back to the client
+   *
+   * @param  {string}   view  - The view to send
+   * @param  {Object}   model - The pre-fetch model to apply to the view
+   * @return {Function}       - A function that sends the specified view
+   */
   fuffle.makeReader = (view, model) => {
     if (typeof model == 'string') {
       model = JSON.parse(fs.readFileSync(env.modelDir + model + '.json'))
@@ -129,6 +145,15 @@ module.exports = (fuffle) => {
     }
   }
 
+  /**
+   * Makes a function to update an element in a database table
+   *
+   * @param  {string}   table    - The table to update data in
+   * @param  {Object}   model    - The pre-fetch model to update in the table
+   * @param  {string}   redirect - The url to redirect to after updating
+   * @return {Function}          - A function that updates the model and
+   *                               redirects to the specified url
+   */
   fuffle.makeUpdater = (table, model, redirect) => {
     if (typeof model == 'string') {
       model = JSON.parse(fs.readFileSync(env.modelDir + model + '.json'))
@@ -150,6 +175,15 @@ module.exports = (fuffle) => {
     }
   }
 
+  /**
+   * Makes a function to delete an element from a database table
+   *
+   * @param  {string}   table    - The table to delete data from
+   * @param  {Object}   model    - The pre-fetch model to delete in the table
+   * @param  {string}   redirect - The url to redirect to after deleting
+   * @return {Function}          - A function that delets the model and
+   *                               redirects to the specified url
+   */
   fuffle.makeDeleter = (table, model, redirect) => {
     if (typeof model == 'string') {
       model = JSON.parse(fs.readFileSync(env.modelDir + model + '.json'))
@@ -168,18 +202,49 @@ module.exports = (fuffle) => {
     }
   }
 
+  /**
+   * Routes the given url to a creator for the given table, model, and redirect
+   *
+   * @param {string} url      - The url to route
+   * @param {string} table    - The table to insert into
+   * @param {Object} model    - The pre-fetch model to insert
+   * @param {string} redirect - The url redirect to after inserting
+   */
   fuffle.routeCreator = (url, table, model, redirect) => {
     fuffle.post(url, fuffle.makeCreator(table, model, redirect))
   }
 
+  /**
+   * Routes the given url to a reader for the given view and model
+   *
+   * @param {string} url   - The url to route
+   * @param {string} view  - The view to send
+   * @param {Object} model - The pre-fetch model to apply to the view
+   */
   fuffle.routeReader = (url, view, model) => {
     fuffle.get(url, fuffle.makeReader(view, model))
   }
 
+  /**
+   * Routes the given url to a updater for the given table, model, and redirect
+   *
+   * @param {string} url      - The url to route
+   * @param {string} table    - The table to update in
+   * @param {Object} model    - The pre-fetch model to update
+   * @param {string} redirect - The url redirect to after updating
+   */
   fuffle.routeUpdater = (url, table, model, redirect) => {
     fuffle.post(url, fuffle.makeUpdater(table, model, redirect))
   }
 
+  /**
+   * Routes the given url to a deleter for the given table, model, and redirect
+   *
+   * @param {string} url      - The url to route
+   * @param {string} table    - The table to delete from
+   * @param {Object} model    - The pre-fetch model to delete
+   * @param {string} redirect - The url redirect to after deleting
+   */
   fuffle.routeDeleter = (url, table, model, redirect) => {
     fuffle.get(url, fuffle.makeDeleter(table, model, redirect))
   }

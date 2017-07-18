@@ -9,7 +9,7 @@ const routers = require('./routers.js')
 /**
  * Handles a request sent to the http server
  *
- * @param {Object} request - The request to process
+ * @param {Object} request  - The request to process
  * @param {Object} response - A response to send information back to the client
  */
 function handleRequest(request, response) {
@@ -21,7 +21,7 @@ function handleRequest(request, response) {
   /**
    * Continues to the next middleware
    *
-   * @param {Object} request - The request to process
+   * @param {Object} request  - The request to process
    * @param {Object} response - A response to send information back to the
    *                            client
    */
@@ -38,7 +38,7 @@ function handleRequest(request, response) {
   /**
    * Routes the request to the correct route
    *
-   * @param {Object} request - The request to process
+   * @param {Object} request  - The request to process
    * @param {Object} response - A response to send information back to the
    *                            client
    */
@@ -85,9 +85,8 @@ function handleRequest(request, response) {
   /**
    * Brings the url to a common state to make comparison easier
    *
-   * @param {string} url - The non-uniform url to be rectified
-   *
-   * @return {string} - The common form of the given url
+   * @param  {string} url - The non-uniform url to be rectified
+   * @return {string}     - The common form of the given url
    */
   function rectifyUrl(url) {
     if (url[0] != '/') url = '/' + url
@@ -101,6 +100,12 @@ env.fetchers = fetchers(module.exports)
 responseMakers(module.exports)
 routers(module.exports)
 
+
+/**
+ * Starts the server
+ *
+ * @param {Function} cb - A callback function to call upon completion
+ */
 module.exports.start = (cb) => {
   let port = module.exports.env.port
   if (!cb) {

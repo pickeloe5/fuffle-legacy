@@ -10,7 +10,6 @@ if (args[0] == 'make' && args[1]) makeProject(args[1])
  * Generates a boilerplate Fuffle project
  *
  * @param {string} name - The name of the project to generate.
- *
  */
 function makeProject(name) {
   let dir = process.cwd() + '/' + name

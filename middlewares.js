@@ -2,6 +2,14 @@ let url = require('url')
 let Busboy = require('busboy')
 
 module.exports = [
+
+  /**
+   * Parses form fields from the request data
+   *
+   * @param  {type} request  - The request to parse fields from
+   * @param  {type} response - A response to send information back to the client
+   * @param  {type} next     - Called to move on to the next middleware
+   */
   function getPostData(request, response, next) {
     if (request.method.toLowerCase() != 'post') {
       next(request, response)
@@ -32,12 +40,28 @@ module.exports = [
     })
     request.pipe(busboy)
   },
+
+  /**
+   * Parses paramters from the url query
+   *
+   * @param  {type} request  - The request to parse parameters from
+   * @param  {type} response - A response to send information back to the client
+   * @param  {type} next     - Called to move on to the next middleware
+   */
   function getGetParams(request, response, next) {
     let urlData = url.parse(request.url, true)
     request.params = urlData.query
     request.pathname = urlData.pathname
     next(request, response)
   },
+
+  /**
+   * Parses cookies from the request
+   *
+   * @param  {type} request  - The request to parse cookies from
+   * @param  {type} response - A response to send information back to the client
+   * @param  {type} next     - Called to move on to the next middleware
+   */
   function getCookies(request, response, next) {
     if (!request.headers.cookie) {
       request.cookies = {}
