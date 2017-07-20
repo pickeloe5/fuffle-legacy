@@ -111,7 +111,9 @@ module.exports = (fuffle) => {
    * @return {Function}          - A function that inserts the pre-fetch
    *                               model and redirects to the specified url
    */
-  fuffle.makeCreator = (table, model, redirect) => {
+  //  fuffle.makeCreator = (table, model, redirect) => {
+  fuffle.makeCreator = (...args) => {
+    let [table, model, redirect] = util.unpackArgs(args)
     if (typeof model == 'string') {
       model = JSON.parse(fs.readFileSync(env.modelDir + model + '.json'))
     }
@@ -141,7 +143,8 @@ module.exports = (fuffle) => {
    * @param  {Object}   model - The pre-fetch model to apply to the view
    * @return {Function}       - A function that sends the specified view
    */
-  fuffle.makeReader = (view, model) => {
+  fuffle.makeReader = (...args) => {
+    let [view, model] = util.unpackArgs(args)
     if (typeof model == 'string') {
       model = JSON.parse(fs.readFileSync(env.modelDir + model + '.json'))
     }
@@ -172,7 +175,8 @@ module.exports = (fuffle) => {
    * @return {Function}          - A function that updates the model and
    *                               redirects to the specified url
    */
-  fuffle.makeUpdater = (table, model, redirect) => {
+  fuffle.makeUpdater = (...args) => {
+    let [table, model, redirect] = util.unpackArgs(args)
     if (typeof model == 'string') {
       model = JSON.parse(fs.readFileSync(env.modelDir + model + '.json'))
     }
@@ -202,7 +206,8 @@ module.exports = (fuffle) => {
    * @return {Function}          - A function that delets the model and
    *                               redirects to the specified url
    */
-  fuffle.makeDeleter = (table, model, redirect) => {
+  fuffle.makeDeleter = (...args) => {
+    let [table, model, redirect] = util.unpackArgs(args)
     if (typeof model == 'string') {
       model = JSON.parse(fs.readFileSync(env.modelDir + model + '.json'))
     }
@@ -228,8 +233,9 @@ module.exports = (fuffle) => {
    * @param {Object} model    - The pre-fetch model to insert
    * @param {string} redirect - The url redirect to after inserting
    */
-  fuffle.routeCreator = (url, table, model, redirect) => {
-    fuffle.post(url, fuffle.makeCreator(table, model, redirect))
+  fuffle.routeCreator = (...args) => {
+    let [url, table, model, redirect] = util.unpackArgs(args)
+    fuffle.post(url, fuffle.makeCreator({table, model, redirect}))
   }
 
   /**
@@ -239,7 +245,8 @@ module.exports = (fuffle) => {
    * @param {string} view  - The view to send
    * @param {Object} model - The pre-fetch model to apply to the view
    */
-  fuffle.routeReader = (url, view, model) => {
+  fuffle.routeReader = (...args) => {
+    let [url, view, model] = util.unpackArgs(args)
     fuffle.get(url, fuffle.makeReader(view, model))
   }
 
@@ -251,7 +258,8 @@ module.exports = (fuffle) => {
    * @param {Object} model    - The pre-fetch model to update
    * @param {string} redirect - The url redirect to after updating
    */
-  fuffle.routeUpdater = (url, table, model, redirect) => {
+  fuffle.routeUpdater = (...args) => {
+    let [url, table, model, redirect] = util.unpackArgs(args)
     fuffle.post(url, fuffle.makeUpdater(table, model, redirect))
   }
 
@@ -263,7 +271,8 @@ module.exports = (fuffle) => {
    * @param {Object} model    - The pre-fetch model to delete
    * @param {string} redirect - The url redirect to after deleting
    */
-  fuffle.routeDeleter = (url, table, model, redirect) => {
+  fuffle.routeDeleter = (...args) => {
+    let [url, table, model, redirect] = util.unpackArgs(args)
     fuffle.get(url, fuffle.makeDeleter(table, model, redirect))
   }
 }
