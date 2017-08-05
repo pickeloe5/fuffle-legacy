@@ -5,6 +5,7 @@ let env = require('./env.js')
 const responseMakers = require('./response-makers.js')
 const fetchers = require('./fetchers.js')
 const routers = require('./routers.js')
+const cssPreprocs = require('./css-preprocs.js')
 
 /**
  * Handles a request sent to the http server
@@ -75,13 +76,19 @@ function handleRequest(request, response) {
             response.setHeader('Content-Type', 'image/jpg')
           }
           if (css) {
-            env.cssPreproc(data, (res) => {
-              response.end(res)
-            })
+            let preproc = env.cssPreproc
+            if (!(preproc instanceof Function)) preproc = cssPreprocs[preproc]
+            if (preproc) {
+              preproc(data, (res) => {
+                response.end(res)
+              })
+            } else {
+              response.end(data)
+            }
           } else {
             response.end(data)
           }
-        } else if (err === 'ENOENT' || err === 'EISDIR' || err === 'EACCES') {
+        } else {
           if (env.error['404']) {
             env.error['404'](request, response)
           } else {

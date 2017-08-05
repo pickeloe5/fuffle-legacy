@@ -13,6 +13,14 @@ so you can focus on what's specific to your app. However, Fuffle does this in
 a very unobtrusive way, allowing you to fall back to manually processing http
 requests.
 
+## Preface
+Fuffle is currently under heavy development. Certain parts of fuffle are subject
+to extreme change, or complete removal. If you see a feature disappear that you
+liked, please open a github issue and we'll work on it. The same applies if
+you don't see a feature that you wish was there. Really anything that should
+be changed about the project, **PLEASE** open a github issue. If you'd like to
+contact the developers, you can reach us at aboutthepickle@gmail.com.
+
 ### Table of Contents
 - [Generator](#generator)
 - [Routing](#routing)

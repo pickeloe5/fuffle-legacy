@@ -1,8 +1,8 @@
 const path = require('path')
+const fs = require('fs')
 const Nedb = require('nedb')
 
 const viewEngines = require('./view-engines.js')
-const cssPreprocs = require('./css-preprocs.js')
 const middlewares = require('./middlewares.js')
 const util = require('./util.js')
 
@@ -23,11 +23,34 @@ module.exports = (fuffle) => {
     db: {},
     error: {},
 
-    viewEngine: viewEngines.pug,
+    viewEngine: 'pug',
     viewExtension: 'pug',
 
-    cssPreproc: cssPreprocs.sass,
-    cssExtension: 'scss',
+    cssPreproc: 'css',
+    cssExtension: 'css',
+  }
+
+  /**
+   * Loads config from a file, and applies it to fuffle.env
+   *
+   * @param {String} path - The path of a file to load config from
+   */
+  function loadConfig(path='.fuffle-cfg.json') {
+    fs.readFile(projectDir + '/' + path, (err, data) => {
+      if (!err) {
+        Object.assign(fuffle.env, JSON.parse(data))
+      }
+    })
+  }
+
+  loadConfig()
+
+  fuffle.setConfig = (config) => {
+    if (config instanceof String) {
+      loadConfig(config)
+    } else {
+      Object.assign(fuffle.env, config)
+    }
   }
 
   fuffle.setViewEngine = (engine, extension) => {
@@ -99,7 +122,6 @@ module.exports = (fuffle) => {
   fuffle.putFetcher = (fetcherName, fetcher) => {
     fuffle.env.fetchers[fetcherName] = fetcher
   }
-
 
   /**
    * Loads a table into memory. If the file doesn't exist, it's created.

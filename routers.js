@@ -1,31 +1,18 @@
 module.exports = (fuffle) => {
   /**
-   * Routes the specified GET url to the given callback
-   *
-   * @param {string}   url      - The url to route
-   * @param {Function} callback - The function(req, res) to handle the request
+   * Generates a route function for each method.
    */
-  fuffle.get = (url, callback) => {
-    fuffle.env.routes.push({
-      'url': url,
-      'method': 'GET',
-      'callback': callback,
-    })
-  }
-
-  /**
-   * Routes the specified POST url to the given callback
-   *
-   * @param {string}   url      - The url to route
-   * @param {Function} callback - The function(req, res) to handle the request
-   */
-  fuffle.post = (url, callback) => {
-    fuffle.env.routes.push({
-      'url': url,
-      'method': 'POST',
-      'callback': callback,
-    })
-  }
+  ((methods) => {
+    for (const method of methods) {
+      fuffle[method.toLowerCase()] = (url, callback) => {
+        fuffle.env.routes.push({
+          'url': url,
+          'method': method.toUpperCase(),
+          'callback': callback,
+        })
+      }
+    }
+  })(['get', 'post', 'put'])
 
   /**
    * Routes the specified error code to the given callback
