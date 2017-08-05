@@ -21,6 +21,13 @@ you don't see a feature that you wish was there. Really anything that should
 be changed about the project, **PLEASE** open a github issue. If you'd like to
 contact the developers, you can reach us at aboutthepickle@gmail.com.
 
+## Updates
+That last update was made 12 PM, August 5th.
+You can now make a file `.fuffle-cfg.json` in your project directory to set
+config related to fuffle. This includes properties such as `port`, `cssPreproc`,
+`cssExtension`, `viewEngine`, `viewExtension`, `viewDir` and more. More
+information on what can be configured is soon to come.
+
 ### Table of Contents
 - [Generator](#generator)
 - [Routing](#routing)
