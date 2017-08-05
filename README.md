@@ -74,7 +74,7 @@ fuffle.routeCreator('/create', 'tableName', 'modelName', '/path/to/redirect');
 This will make a route to "/path/to/url" that adds `modelName` to `tableName`,
 and redirects to "/path/to/redirect". These response-makers are based on
 CRUD support, so there are four:
-```
+```javascript
 fuffle.routeCreator('/create', 'tableName', 'modelName', '/path/to/redirect');
 fuffle.routeReader('/read', 'viewName');
 fuffle.routeUpdater('/update', 'tableName', 'modelName', '/path/to/redirect');
