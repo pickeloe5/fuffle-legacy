@@ -154,7 +154,7 @@ module.exports = (fuffle) => {
           if (env.viewEngine == viewEngines.pug) args.basedir = env.viewDir
           let viewEngine = env.viewEngine
           if (!(viewEngine instanceof Function)) {
-            viewEngine = viewEngines[env.viewEngines]
+            viewEngine = viewEngines[env.viewEngine]
           }
           viewEngine(env.viewDir + view + '.' + env.viewExtension, args,
               (result) => {

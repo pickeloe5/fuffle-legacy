@@ -16,7 +16,7 @@ module.exports = (fuffle) => {
     viewDir: projectDir + '/views/',
     dataDir: projectDir + '/data/',
     modelDir: projectDir + '/models/',
-    staticDir: projectDir + '/static',
+    staticDir: projectDir + '/static/',
 
     routes: [],
     middlewares,

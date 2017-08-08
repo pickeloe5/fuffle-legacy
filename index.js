@@ -58,8 +58,8 @@ function handleRequest(request, response) {
       }
     }
     if (!hit) {
-      let staticUrl = env.staticDir + url.substring(0, url.length)
-      fs.readFile(staticUrl, 'utf-8', (err, data) => {
+      let staticUrl = env.staticDir + url.substring(1, url.length)
+      fs.readFile(staticUrl, (err, data) => {
         if (!err) {
           let css = false
           if (staticUrl.endsWith('.html')) {
@@ -72,8 +72,9 @@ function handleRequest(request, response) {
             response.setHeader('Content-Type', 'text/js')
           } else if (staticUrl.endsWith('.png')) {
             response.setHeader('Content-Type', 'image/png')
-          } else if (staticUrl.endsWith('.jpg')) {
-            response.setHeader('Content-Type', 'image/jpg')
+          } else if (/\.(?:jpeg|jpg)$/i.test(staticUrl)) {
+            response.setHeader('Content-Type', 'image/jpeg')
+            response.setHeader('Content-Length', data.byteLength)
           }
           if (css) {
             let preproc = env.cssPreproc
@@ -83,6 +84,7 @@ function handleRequest(request, response) {
                 response.end(res)
               })
             } else {
+              response.send()
               response.end(data)
             }
           } else {
