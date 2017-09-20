@@ -140,7 +140,7 @@ module.exports = (fuffle) => {
    * @param {string} name - The name of the desired table
    */
   fuffle.getTable = (name) => {
-    fuffle.env.db[name]
+    return fuffle.env.db[name]
   }
 
 
