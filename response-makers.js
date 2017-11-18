@@ -151,7 +151,7 @@ module.exports = (fuffle) => {
     return function(request, response) {
       const cb = (model) => {
         fetch(request, model, function(args) {
-          if (env.viewEngine == viewEngines.pug) args.basedir = env.viewDir
+          if (env.viewEngine == 'pug') args.basedir = env.viewDir
           let viewEngine = env.viewEngine
           if (!(viewEngine instanceof Function)) {
             viewEngine = viewEngines[env.viewEngine]
