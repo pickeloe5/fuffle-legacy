@@ -21,7 +21,7 @@ module.exports = cb => new Fuffle({
         console.log('listening on 8080')
     })
 
-    Promise.resolve(cb(fuffle)).then(() => {
+    Promise.resolve(cb(fuffle.db)).then(() => {
         server.close()
         fuffle.db().close()
     })

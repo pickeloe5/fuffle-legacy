@@ -1,11 +1,17 @@
 const server = require('./server.js')
-const { expose } = require('../lib/mongo')
+const { exposeDocument } = require('../lib/mongo')
 const Document = require('../lib/mongo/Document')
 
-@expose('users')
-class User extends Document {
+@exposeDocument('users')
+class User {
+    constructor() {
+        this.apples = 0
+    }
     whackBush() {
-        this.apples++
+        this.apples = this.addApple() + 1
+    }
+    addApple() {
+        return ++this.apples
     }
 }
 
@@ -123,6 +129,10 @@ const tests = ({ db }) => [
 // server(db => Promise.all(tests(db)))
 server(db => {
     return new Promise((resolve, reject) => {
-        
+        db.users.push()
+            .then(user => {
+                console.log(user)
+            })
+            .then(resolve)
     })
 })
