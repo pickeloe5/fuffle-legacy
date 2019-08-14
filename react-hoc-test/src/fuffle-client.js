@@ -1,3 +1,8 @@
+const identityProxy = () => new Proxy(()=>{}, {
+    get: identityProxy,
+    apply: identityProxy
+})
+
 class Fuffle {
     static connect(options) {
         const fuffle = new this(options)
@@ -101,7 +106,7 @@ Fuffle.Operation = class Operation {
 
                 if (key === 'then') {
                     this.type = 'get'
-                    return this.fuffle.resolve(this)
+                    return next => next(this.fuffle.resolve(this))
                 }
 
                 return push()

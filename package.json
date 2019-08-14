@@ -4,7 +4,6 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "babel-node .",
     "test": "babel-node test"
   },
   "keywords": [],

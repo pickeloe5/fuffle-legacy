@@ -1,5 +1,13 @@
-const Fuffle = require('../lib')
-const express = require('express')
+const server = require('./server.js')
+const { expose } = require('../lib/mongo')
+const Document = require('../lib/mongo/Document')
+
+@expose('users')
+class User extends Document {
+    whackBush() {
+        this.apples++
+    }
+}
 
 const logColors = {
     reset: '\x1b[0m',
@@ -18,53 +26,29 @@ const logTest = (name, test) => Promise.resolve(test)
         console.log(`${logColor('red', 'TEST FAILED')}: ${name}\r\n\t${message}`)
     })
 
-const app = express()
-
-app.use(express.json())
-
-let fuffle
-
-new Fuffle({
-    db: {
-        url: 'mongodb://localhost:27017',
-        name: 'fuffle-test'
-    }
-}).then(_fuffle => {
-
-    fuffle = _fuffle
-
-    app.use(fuffle.handleRequest)
-
-    const server = app.listen(3000, () => {
-        console.log('listening on 3000')
-    })
-
-    Promise.all(tests(fuffle)).then(() => {
-        server.close()
-        fuffle.db().close()
-    })
-})
-
 const fail = message => { throw new Error(message) }
 const checkId = item => { if (!item._id) fail('item did not get id') }
 const checkText = text => item => { if (item.text !== text) fail('item did not get text') }
 
 const tests = ({ db }) => [
 
-    logTest('insert one', db.items.push({ text: 'asdf' })
+    logTest('insert one',
+            db.items.push({ text: 'asdf' })
         .then(item => {
             checkId(item)
             checkText('asdf')(item, 'asdf')
         })),
     
-    logTest('insert multiple', db.items.concat([ { text: 'abc' }, { text: 'def' } ])
+    logTest('insert multiple',
+            db.items.concat([ { text: 'abc' }, { text: 'def' } ])
         .then(items => {
             items.forEach(checkId)
             checkText('abc')(items[0])
             checkText('def')(items[1])
         })),
     
-    logTest('read one', db.items.push({ text: 'asdf' })
+    logTest('read one',
+            db.items.push({ text: 'asdf' })
         .then(item1 => {
             return db.items[item1._id]
                 .then(item2 => {
@@ -73,20 +57,25 @@ const tests = ({ db }) => [
                 })
         })),
     
-    logTest('read multiple', db.items.push({ text: 'asdf' })
-        .then(() => db.items.filter({ text: 'asdf' }))
+    logTest('read multiple',
+            db.items.push({ text: 'asdf' })
+        .then(() =>
+            db.items.filter({ text: 'asdf' }))
         .then(items => {
             if (!items.length) fail('got no items')
             items.forEach(checkText('asdf'))
         })),
     
-    logTest('update one', db.items.push({ text: 'abc' })
+    logTest('update one',
+            db.items.push({ text: 'abc' })
         .then(item1 => {
-            checkText('abc')(item1)
+
             ; (db.items[item1._id] = { text: 'def', flag: true })
+
                 .then(item2 => {
                     if (!item1._id.equals(item2._id)) fail('updated wrong id')
                     if (!item2.flag) fail('item lost flag')
+                    checkText('abc')(item1)
                     checkText('def')(item2)
                 })
         })),
@@ -107,20 +96,33 @@ const tests = ({ db }) => [
                 })
         })),
     
-    logTest('delete one', db.items.push({ text: 'asdf' })
-        .then(item => db.items.pop(item._id)
+    logTest('delete one',
+            db.items.push({ text: 'asdf' })
+        .then(item =>
+            db.items.pop(item._id)
         .then(n => {
             if (typeof n !== 'number') fail('delete count not number')
             if (n > 1) fail('deleted more than one')
             if (n < 1) fail('failed to delete')
         }))),
     
-    logTest('delete multiple', db.items.concat([
-            { text: 'abc', flag: true }, { text: 'def', flag: true } ])
-        .then(items => db.items.slice({ flag: true }))
+    logTest('delete multiple',
+            db.items.concat([
+                { text: 'abc', flag: true },
+                { text: 'def', flag: true }
+            ])
+        .then(() =>
+            db.items.slice({ flag: true }))
         .then(n => {
             if (typeof n !== 'number') fail('delete count not number')
             if (n < 2) fail('failed to delete')
         })),
 
 ]
+
+// server(db => Promise.all(tests(db)))
+server(db => {
+    return new Promise((resolve, reject) => {
+        
+    })
+})
