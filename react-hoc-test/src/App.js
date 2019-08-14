@@ -1,73 +1,39 @@
 import React, { Component } from 'react'
-import Fuffle from './fuffle-client.js'
+import { fuffleConnect } from './fuffle-client.js'
 
-const fuffle = Fuffle.connect({ url: 'http://localhost:8080' })
-
-const fuffleConnect = mapDbToProps => ComponentType => {
-  return class FuffleConnect extends Component {
-    constructor(props, context) {
-      super(props, context)
-      this.state = {
-        loading: true,
-        error: null,
-        data: null
-      }
-      this.fetch()
-    }
-    refetch = () => {
-      this.setState({ loading: true, error: null })
-      this.fetch()
-    }
-    fetch = () => {
-      const entries = Object.entries(mapDbToProps(fuffle))
-      Promise.all(entries.map(([ , val ]) => val))
-        .then(values => {
-          return values.reduce((data, val, i) => ({
-            ...data, [entries[i][0]]: val
-          }), {})
-        })
-        .then(data => this.setState({ data, loading: false }))
-    }
-    render() {
-      return <ComponentType {...this.state} refetch={this.refetch} props={this.props} fuffle={fuffle} />
-    }
-  }
-}
-
-const displayUser = user => <div>
-  <textarea cols={40} rows={8}>{JSON.stringify(user, undefined, 2)}</textarea>
+const displayUser = user => <div key={user._id}>
+  <textarea cols={40} rows={8} defaultValue={JSON.stringify(user, undefined, 2)} />
 </div>
 
 class App extends Component {
+  constructor(props, context) {
+    super(props, context)
+    this.state = { users: [], user: props.props.fuffle.users['5d54841506f91211e337b630'] }
+  }
   test = () => {
-    fuffle.users.slice({})
-      .then(result => {
-        console.log('deleted', result)
-      })
+    const { user } = this.state
+    user.whackBush()
   }
   render() {
 
     const { loading, error, data } = this.props
+    const { users } = this.state
 
     if (loading) return <p>loading...</p>
     if (error) return <p>{error.message || error}</p>
 
-    const { user, users, deleted } = data
-
-    console.log('deleted', deleted)
+    const { user } = data
 
     return <div>
-      <input type='button' value='whackBush' onClick={this.test} />
-      {/* {deleted} */}
-      {users.map(displayUser)}
+      { displayUser(user) }
+      <input type='button' value='push' onClick={this.test} />
+      { users.map(displayUser) }
     </div>
   }
 }
 
 const mapDbToProps = db => ({
-  user: db.users['5d53eda155fc2250df039fce'],
-  users: db.users.filter(),
-  delete: db.users.pop('5d53ecfa55fc2250df039fc6')
+  user: db.users['5d54841506f91211e337b630']
 })
 
 App = fuffleConnect(mapDbToProps)(App)

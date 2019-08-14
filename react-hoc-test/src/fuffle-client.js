@@ -1,13 +1,10 @@
-const identityProxy = () => new Proxy(()=>{}, {
-    get: identityProxy,
-    apply: identityProxy
-})
+import React, { Component } from 'react'
 
 class Fuffle {
     static connect(options) {
-        const fuffle = new this(options)
+        if (!this.instance) this.instance = new this(options)
         return new Proxy({}, {
-            get: (_, key) => new Fuffle.Operation(fuffle, key)
+            get: (_, key) => new Fuffle.Operation(this.instance, key)
         })
     }
     constructor(options) {
@@ -18,6 +15,8 @@ class Fuffle {
         const method = {
             get: 'GET', set: 'PUT', call: 'POST'
         }[operation.type]
+
+        console.log(operation.parts)
 
         const url = `/${operation.parts.join('/')}`
 
@@ -134,3 +133,37 @@ Fuffle.Operation = class Operation {
 }
 
 export default Fuffle
+
+const fuffleConnect = mapDbToProps => ComponentType => {
+  return class FuffleConnect extends Component {
+    constructor(props, context) {
+      super(props, context)
+      this.state = {
+        loading: true,
+        error: null,
+        data: null
+      }
+      this.fetch()
+    }
+    refetch = () => {
+      this.setState({ loading: true, error: null })
+      this.fetch()
+    }
+    fetch = () => {
+      const entries = Object.entries(mapDbToProps(this.props.fuffle))
+      const vals = entries.map(([ , val ]) => val.then(_=>_))
+      Promise.all(vals)
+        .then(values => {
+          return values.reduce((data, val, i) => ({
+            ...data, [entries[i][0]]: val
+          }), {})
+        })
+        .then(data => this.setState({ data, loading: false }))
+    }
+    render() {
+      return <ComponentType {...this.state} refetch={this.refetch} props={this.props} />
+    }
+  }
+}
+
+export { fuffleConnect }
