@@ -36,7 +36,7 @@ const fail = message => { throw new Error(message) }
 const checkId = item => { if (!item._id) fail('item did not get id') }
 const checkText = text => item => { if (item.text !== text) fail('item did not get text') }
 
-const tests = ({ db }) => [
+const tests = db => [
 
     logTest('insert one',
             db.items.push({ text: 'asdf' })
@@ -126,13 +126,13 @@ const tests = ({ db }) => [
 
 ]
 
-// server(db => Promise.all(tests(db)))
-server(db => {
-    return new Promise((resolve, reject) => {
-        db.users.push()
-            .then(user => {
-                console.log(user)
-            })
-            .then(resolve)
-    })
-})
+server(db => Promise.all(tests(db)))
+// server(db => {
+//     return new Promise((resolve, reject) => {
+//         db.users.push()
+//             .then(user => {
+//                 console.log(user)
+//             })
+//             .then(resolve)
+//     })
+// })
